@@ -11,15 +11,22 @@ export const handler = async (event) => {
 
   try {
     const headers = {
-      'Accept': 'application/json',
-      'Referer': 'https://resultadoelectoral.onpe.gob.pe/',
-      'User-Agent': 'Mozilla/5.0',
+      'Referer': 'https://resultadoelectoral.onpe.gob.pe/main/resumen',
+      'Origin': 'https://resultadoelectoral.onpe.gob.pe',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+      'Accept': 'application/json, text/plain, */*',
+      'Accept-Language': 'es-PE,es;q=0.9',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Connection': 'keep-alive',
     };
 
     const [totalesRes, votosRes] = await Promise.all([
       fetch(`${BASE}/resumen-general/totales?idAmbitoGeografico=1&idEleccion=10&tipoFiltro=ubigeo_nivel_01&idUbigeoDepartamento=${cod}`, { headers }),
       fetch(`${BASE}/eleccion-presidencial/participantes-ubicacion-geografica-nombre?tipoFiltro=ubigeo_nivel_01&idAmbitoGeografico=1&ubigeoNivel1=${cod}&idEleccion=10`, { headers }),
     ]);
+
+    if (!totalesRes.ok) throw new Error(`HTTP ${totalesRes.status}`);
+    if (!votosRes.ok) throw new Error(`HTTP ${votosRes.status}`);
 
     const totales = await totalesRes.json();
     const votos = await votosRes.json();
