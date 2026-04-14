@@ -121,6 +121,50 @@ for (const dep of DEPARTAMENTOS) {
   await new Promise(r => setTimeout(r, 200));
 }
 
+// Voto extranjero (region #26) — endpoint diferente
+console.log('Consultando voto extranjero...');
+const [totalesExt, votosExt] = await Promise.all([
+  get('/presentacion-backend/resumen-general/totales?idEleccion=10&tipoFiltro=ambito_geografico&idAmbitoGeografico=2'),
+  get('/presentacion-backend/resumen-general/participantes?idEleccion=10&tipoFiltro=ambito_geografico&idAmbitoGeografico=2'),
+]);
+if (totalesExt && votosExt) {
+  const candsExt = (Array.isArray(votosExt) ? votosExt : []).filter(c => c.porcentajeVotosValidos != null);
+  const rlaE = findCand(candsExt, 'LOPEZ ALIAGA');
+  const sanE = findCand(candsExt, 'SANCHEZ PALOMINO');
+  const keiE = findCand(candsExt, 'FUJIMORI');
+  const belE = findCand(candsExt, 'BELMONT');
+  const niE  = findCand(candsExt, 'NIETO');
+  if (rlaE && sanE) {
+    const taE = totalesExt.totalActas || 0, coE = totalesExt.contabilizadas || 0;
+    const apE = taE - coE, acE = totalesExt.actasContabilizadas || 0;
+    const tvrE = rlaE.porcentajeVotosValidos > 0 ? rlaE.totalVotosValidos / (rlaE.porcentajeVotosValidos / 100) : 0;
+    const vxaE = coE > 0 ? tvrE / coE : 160;
+    const vpE = apE * vxaE;
+    const dE = Math.round(vpE * ((sanE.porcentajeVotosValidos - rlaE.porcentajeVotosValidos) / 100));
+    totalVotosPendEst += vpE;
+    regiones.push({
+      nombre: 'Extranjero', cod: 'EXT',
+      pctProc: parseFloat(acE.toFixed(1)), totalActas: taE, contabilizadas: coE,
+      actasPend: apE, votosPend: Math.round(vpE),
+      pctRla: parseFloat(rlaE.porcentajeVotosValidos.toFixed(2)),
+      pctSanchez: parseFloat(sanE.porcentajeVotosValidos.toFixed(2)),
+      pctKeiko: keiE ? parseFloat(keiE.porcentajeVotosValidos.toFixed(2)) : null,
+      pctBelmont: belE ? parseFloat(belE.porcentajeVotosValidos.toFixed(2)) : null,
+      pctNieto: niE ? parseFloat(niE.porcentajeVotosValidos.toFixed(2)) : null,
+      votosRla: rlaE.totalVotosValidos, votosSanchez: sanE.totalVotosValidos,
+      votosKeiko: keiE ? keiE.totalVotosValidos : null,
+      votosBelmont: belE ? belE.totalVotosValidos : null,
+      votosNieto: niE ? niE.totalVotosValidos : null,
+      delta: dE, favorDe: dE > 0 ? 'SANCHEZ' : 'RLA',
+      todosLosCandidatos: candsExt.sort((a,b) => b.totalVotosValidos - a.totalVotosValidos).map(c => ({
+        nombre: c.nombreCandidato, partido: c.nombreAgrupacionPolitica,
+        votos: c.totalVotosValidos, pct: c.porcentajeVotosValidos,
+      })),
+    });
+    console.log('Extranjero OK: ' + acE.toFixed(1) + '% | RLA ' + rlaE.porcentajeVotosValidos.toFixed(1) + '% | San ' + sanE.porcentajeVotosValidos.toFixed(1) + '%');
+  } else { console.warn('Extranjero: candidatos no encontrados'); }
+} else { console.warn('Extranjero: sin datos'); }
+
 // Gap calculado desde suma de regiones (no hardcodeado)
 const rlaNacVotos  = regiones.reduce((s,r) => s + r.votosRla, 0);
 const sanNacVotos  = regiones.reduce((s,r) => s + r.votosSanchez, 0);
@@ -149,7 +193,7 @@ regiones.sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
 const deltaTotalSanchez = regiones.reduce((s,r) => s + r.delta, 0);
 const gapFinal = GAP_ACTUAL - deltaTotalSanchez;
 
-console.log(regiones.length + '/25 regiones OK');
+console.log(regiones.length + '/26 regiones OK' + (regiones.find(r => r.cod === 'EXT') ? ' (incl. extranjero)' : ''));
 console.log('% procesado: ' + pctProcesadoNac + '%');
 console.log('Gap actual: ' + GAP_ACTUAL.toLocaleString('es-PE'));
 console.log('Delta Sanchez: ' + deltaTotalSanchez.toLocaleString('es-PE'));

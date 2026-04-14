@@ -71,6 +71,24 @@ export default function RegionalHeatMap({ regiones }) {
               );
             })}
           </div>
+          {(() => {
+            const ext = cells.find(c => false); // EXT not in REGION_GRID
+            const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+            const extRegion = regiones.find(r => r.cod === 'EXT' || norm(r.nombre) === 'EXTRANJERO');
+            if (extRegion) {
+              const maxDelta = Math.max(...regiones.map(r => Math.abs(r.delta)));
+              const opacity = maxDelta > 0 ? 0.35 + 0.65 * (Math.abs(extRegion.delta) / maxDelta) : 0.5;
+              const isRla = extRegion.favorDe === 'RLA';
+              const bg = isRla ? `rgba(24, 95, 165, ${opacity})` : `rgba(163, 45, 45, ${opacity})`;
+              return (
+                <div className="heatmap-ext" style={{ background: bg }}>
+                  <span className="heatmap-abbr">🌍 EXT</span>
+                  <span className="heatmap-delta">{fmtCompact(extRegion.delta)}</span>
+                </div>
+              );
+            }
+            return null;
+          })()}
           <div className="heatmap-legend">
             <span className="heatmap-legend-item"><span className="heatmap-dot rla" /> RLA</span>
             <span className="heatmap-legend-item"><span className="heatmap-dot san" /> Sanchez</span>
