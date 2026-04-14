@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useONPEData } from './hooks/useONPEData';
 import { useProjection } from './hooks/useProjection';
 import { fmtThousands, fmtPct } from './utils/format';
+import { exportToExcel } from './utils/exportExcel';
 
 import Header from './components/Header';
 import ProgressBar from './components/ProgressBar';
@@ -14,6 +15,7 @@ import RegionalHeatMap from './components/RegionalHeatMap';
 import RegionalTable from './components/RegionalTable';
 import ModelComparison from './components/ModelComparison';
 import AutoRefreshBadge from './components/AutoRefreshBadge';
+import VoteTotals from './components/VoteTotals';
 import DataUpdater from './components/DataUpdater';
 
 export default function App() {
@@ -101,6 +103,8 @@ export default function App() {
         onAdjust={handleAdjust}
       />
 
+      <VoteTotals regiones={data?.regiones} regionesAjustadas={projection?.regionesAjustadas} />
+
       <ProjectionResult gapFinal={gapFinal} resultado={resultado} />
 
       <BreakevenCalculator
@@ -117,7 +121,12 @@ export default function App() {
 
       <ModelComparison bottomUpResult={projection} />
 
-      <DataUpdater onUpdate={setManualData} />
+      <div className="actions-row">
+        <DataUpdater onUpdate={setManualData} />
+        <button className="export-btn" onClick={() => exportToExcel(data)}>
+          Exportar Excel
+        </button>
+      </div>
 
       <AutoRefreshBadge
         nextRefresh={nextRefresh}
