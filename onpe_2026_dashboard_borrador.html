@@ -1,0 +1,262 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-mono, monospace); }
+.db { padding: 1rem 0; }
+.hdr { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 8px; }
+.hdr-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase; }
+.hdr-ts { font-size: 11px; color: var(--color-text-tertiary); }
+.cards { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px 16px; }
+.card-label { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+.card-val { font-size: 22px; font-weight: 500; color: var(--color-text-primary); font-family: var(--font-mono); }
+.card-sub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 4px; }
+.card-val.rla { color: #185FA5; }
+.card-val.san { color: #A32D2D; }
+.card-val.ok  { color: #3B6D11; }
+.section { margin-bottom: 1.5rem; }
+.section-title { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; font-weight: 500; }
+.proj-box { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; background: var(--color-background-primary); }
+.proj-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 6px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.proj-row:last-child { border-bottom: none; }
+.proj-label { color: var(--color-text-secondary); }
+.proj-val { font-family: var(--font-mono); font-weight: 500; }
+.proj-result { background: var(--color-background-info); border-radius: var(--border-radius-md); padding: 12px 16px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+.proj-result-label { font-size: 12px; color: var(--color-text-info); text-transform: uppercase; letter-spacing: .06em; }
+.proj-result-val { font-size: 18px; font-weight: 500; color: var(--color-text-info); font-family: var(--font-mono); }
+.slider-row { display: flex; align-items: center; gap: 12px; margin: 10px 0; }
+.slider-row label { font-size: 12px; color: var(--color-text-secondary); min-width: 120px; }
+.slider-row input { flex: 1; }
+.slider-row span { font-size: 13px; font-weight: 500; font-family: var(--font-mono); min-width: 48px; text-align: right; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tbl th { font-size: 10px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: .06em; text-align: left; padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); font-weight: 500; }
+.tbl th.r { text-align: right; }
+.tbl td { padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: middle; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl td.r { text-align: right; font-family: var(--font-mono); }
+.bar-wrap { width: 120px; height: 6px; background: var(--color-background-secondary); border-radius: 3px; display: inline-block; position: relative; }
+.bar-fill { height: 6px; border-radius: 3px; position: absolute; left: 0; }
+.badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
+.badge.san { background: #FCEBEB; color: #A32D2D; }
+.badge.rla { background: #E6F1FB; color: #185FA5; }
+.progress-bar { width: 100%; height: 4px; background: var(--color-background-secondary); border-radius: 2px; margin-bottom: 1.5rem; overflow: hidden; }
+.progress-fill { height: 4px; background: #185FA5; border-radius: 2px; transition: width .3s; }
+.conflict { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.conflict-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+.conflict-src { font-size: 11px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.conflict-val { font-size: 16px; font-weight: 500; font-family: var(--font-mono); }
+.conflict-lbl { font-size: 11px; color: var(--color-text-secondary); margin-top: 3px; }
+.stars { color: #EF9F27; font-size: 11px; }
+@media (max-width: 600px) { .cards { grid-template-columns: 1fr 1fr; } .conflict { grid-template-columns: 1fr; } }
+</style>
+
+<div class="db">
+  <div class="hdr">
+    <span class="hdr-title">Perú 2026 — proyección 2do lugar</span>
+    <span class="hdr-ts" id="ts">14/04/2026 00:39 · datos ONPE oficial</span>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" style="width:68.9%"></div></div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-label">Actas procesadas</div>
+      <div class="card-val">68.9%</div>
+      <div class="card-sub">63,903 / 92,766</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Gap actual</div>
+      <div class="card-val rla" id="gap-actual">470,551</div>
+      <div class="card-sub">RLA sobre Sánchez</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Δ Sánchez pend.</div>
+      <div class="card-val san">+247,109</div>
+      <div class="card-sub">votos netos proyect.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Gap proyectado</div>
+      <div class="card-val ok" id="gap-final">+223,442</div>
+      <div class="card-sub" id="gap-label">RLA 2do lugar</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Análisis de sensibilidad</div>
+    <div class="proj-box">
+      <div class="slider-row">
+        <label>Sánchez en Cajamarca</label>
+        <input type="range" min="35" max="52" step="1" value="38" id="sl-caj">
+        <span id="sl-caj-out">38%</span>
+      </div>
+      <div class="slider-row">
+        <label>Sánchez en Cusco</label>
+        <input type="range" min="15" max="30" step="1" value="19" id="sl-cus">
+        <span id="sl-cus-out">19%</span>
+      </div>
+      <div class="slider-row">
+        <label>RLA en Lima pend.</label>
+        <input type="range" min="15" max="25" step="1" value="20" id="sl-lim">
+        <span id="sl-lim-out">20%</span>
+      </div>
+      <div class="proj-result" id="proj-result">
+        <span class="proj-result-label" id="proj-result-label">Proyección central</span>
+        <span class="proj-result-val" id="proj-result-val">RLA +223,442</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Bottom-up por región (impacto en 2do lugar)</div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Región</th>
+          <th class="r">% proc.</th>
+          <th class="r">Sánchez%</th>
+          <th class="r">RLA%</th>
+          <th class="r">Δ votos</th>
+          <th>Progreso</th>
+          <th>Gana</th>
+        </tr>
+      </thead>
+      <tbody id="tbl-body"></tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Comparación de modelos</div>
+    <div class="conflict">
+      <div class="conflict-card">
+        <div class="conflict-src">Bottom-up v4 (este análisis)</div>
+        <div class="conflict-val" style="color:#185FA5">RLA +223,442</div>
+        <div class="conflict-lbl">Datos reales ONPE por región. Supone que % pendiente = % observado.</div>
+      </div>
+      <div class="conflict-card">
+        <div class="conflict-src">Ipsos/NDI/Transparencia <span class="stars">★★★★★</span></div>
+        <div class="conflict-val" style="color:#A32D2D">Sánchez 12.4%</div>
+        <div class="conflict-lbl">Muestra estratificada 124 provincias. Captura ruralidad real.</div>
+      </div>
+      <div class="conflict-card">
+        <div class="conflict-src">Datum conteo rápido</div>
+        <div class="conflict-val" style="color:#185FA5">RLA +~200,000</div>
+        <div class="conflict-lbl">1,500 actas. Metodología no publicada.</div>
+      </div>
+      <div class="conflict-card">
+        <div class="conflict-src">Tendencia ONPE lineal</div>
+        <div class="conflict-val" style="color:#A32D2D">Sánchez (70-73%)</div>
+        <div class="conflict-lbl">Tasa cierre: 20,855 votos/1%. Sesgado — Lima-pesado.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const REGIONS = [
+  { n:'Cajamarca', proc:47.0, pend:2249, pctS:38.05, pctR:3.65,  delta:128306,  fav:'SANCHEZ' },
+  { n:'Lima',      proc:88.0, pend:3495, pctS:3.18,  pctR:20.09, delta:-123769, fav:'RLA' },
+  { n:'Puno',      proc:69.8, pend:1025, pctS:23.92, pctR:2.08,  delta:43451,   fav:'SANCHEZ' },
+  { n:'Cusco',     proc:61.6, pend:1528, pctS:18.51, pctR:5.61,  delta:36201,   fav:'SANCHEZ' },
+  { n:'San Martín',proc:52.3, pend:1209, pctS:22.33, pctR:6.23,  delta:31654,   fav:'SANCHEZ' },
+  { n:'Apurímac',  proc:61.4, pend:509,  pctS:38.81, pctR:3.66,  delta:29167,   fav:'SANCHEZ' },
+  { n:'Huánuco',   proc:58.4, pend:975,  pctS:23.73, pctR:7.04,  delta:25341,   fav:'SANCHEZ' },
+  { n:'Huancavelica',proc:66.3,pend:429, pctS:41.82, pctR:2.33,  delta:24095,   fav:'SANCHEZ' },
+  { n:'Amazonas',  proc:45.0, pend:703,  pctS:27.85, pctR:4.34,  delta:24044,   fav:'SANCHEZ' },
+  { n:'Ayacucho',  proc:68.2, pend:604,  pctS:26.94, pctR:3.09,  delta:22692,   fav:'SANCHEZ' },
+  { n:'Ancash',    proc:67.0, pend:1147, pctS:14.24, pctR:6.20,  delta:14832,   fav:'SANCHEZ' },
+  { n:'La Libertad',proc:57.2,pend:2267, pctS:6.49,  pctR:9.84,  delta:-14291,  fav:'RLA' },
+  { n:'Madre de Dios',proc:43.4,pend:287,pctS:18.92, pctR:3.81,  delta:7367,    fav:'SANCHEZ' },
+  { n:'Ica',       proc:59.1, pend:1000, pctS:7.18,  pctR:10.02, delta:-5707,   fav:'RLA' },
+  { n:'Callao',    proc:93.4, pend:190,  pctS:2.98,  pctR:15.08, delta:-4600,   fav:'RLA' },
+  { n:'Pasco',     proc:66.2, pend:271,  pctS:16.90, pctR:6.70,  delta:4337,    fav:'SANCHEZ' },
+  { n:'Arequipa',  proc:78.3, pend:915,  pctS:9.15,  pctR:11.14, delta:-3840,   fav:'RLA' },
+  { n:'Junín',     proc:69.0, pend:1145, pctS:9.60,  pctR:8.18,  delta:2963,    fav:'SANCHEZ' },
+  { n:'Ucayali',   proc:53.7, pend:724,  pctS:8.45,  pctR:5.89,  delta:2798,    fav:'SANCHEZ' },
+  { n:'Tacna',     proc:76.8, pend:242,  pctS:10.88, pctR:6.56,  delta:2259,    fav:'SANCHEZ' },
+  { n:'Lambayeque',proc:69.4, pend:1099, pctS:9.09,  pctR:9.39,  delta:-627,    fav:'RLA' },
+  { n:'Moquegua',  proc:94.3, pend:33,   pctS:12.85, pctR:5.80,  delta:459,     fav:'SANCHEZ' },
+  { n:'Piura',     proc:51.7, pend:2551, pctS:8.06,  pctR:8.11,  delta:-217,    fav:'RLA' },
+  { n:'Tumbes',    proc:79.3, pend:131,  pctS:6.39,  pctR:5.94,  delta:103,     fav:'SANCHEZ' },
+  { n:'Loreto',    proc:51.8, pend:1301, pctS:7.02,  pctR:6.97,  delta:91,      fav:'SANCHEZ' },
+];
+
+const GAP = 470551;
+const CAJ_BASE_VOTES = 372939;
+const CUS_BASE_VOTES = 280714;
+const LIM_BASE_VOTES = 731883;
+const CAJ_RLA = 3.65;
+const CUS_RLA = 5.61;
+const LIM_SAN = 3.18;
+
+function fmt(n) { return (n>=0?'+':'')+Math.round(n).toLocaleString('es-PE'); }
+
+function renderTable() {
+  const body = document.getElementById('tbl-body');
+  body.innerHTML = REGIONS.map(r => {
+    const isSan = r.fav === 'SANCHEZ';
+    const barW = Math.min(100, Math.abs(r.delta) / 1500);
+    const col = isSan ? '#A32D2D' : '#185FA5';
+    return `<tr>
+      <td style="font-weight:500;font-size:12px">${r.n}</td>
+      <td class="r" style="color:var(--color-text-secondary)">${r.proc}%</td>
+      <td class="r" style="color:#A32D2D">${r.pctS.toFixed(1)}%</td>
+      <td class="r" style="color:#185FA5">${r.pctR.toFixed(1)}%</td>
+      <td class="r" style="color:${col};font-weight:500">${fmt(r.delta)}</td>
+      <td>
+        <div class="bar-wrap">
+          <div class="bar-fill" style="width:${barW}%;background:${col}"></div>
+        </div>
+      </td>
+      <td><span class="badge ${r.fav.toLowerCase()}">${r.fav === 'SANCHEZ' ? 'Sánchez' : 'RLA'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function calcProjection(cajPct, cusPct, limPct) {
+  let delta = REGIONS.reduce((s,r) => s + r.delta, 0);
+  const cajAdj = CAJ_BASE_VOTES * ((cajPct - 38.05) / 100);
+  const cusAdj = CUS_BASE_VOTES * ((cusPct - 18.51) / 100);
+  const limAdj = LIM_BASE_VOTES * ((limPct - 20.09) / 100) * -1;
+  delta += cajAdj + cusAdj + limAdj;
+  return Math.round(GAP - delta);
+}
+
+function updateProjection() {
+  const caj = parseInt(document.getElementById('sl-caj').value);
+  const cus = parseInt(document.getElementById('sl-cus').value);
+  const lim = parseInt(document.getElementById('sl-lim').value);
+  document.getElementById('sl-caj-out').textContent = caj + '%';
+  document.getElementById('sl-cus-out').textContent = cus + '%';
+  document.getElementById('sl-lim-out').textContent = lim + '%';
+  const gf = calcProjection(caj, cus, lim);
+  const res = document.getElementById('proj-result');
+  const lbl = document.getElementById('proj-result-label');
+  const val = document.getElementById('proj-result-val');
+  const gfEl = document.getElementById('gap-final');
+  const gfLbl = document.getElementById('gap-label');
+  if (gf > 0) {
+    res.style.background = 'var(--color-background-info)';
+    lbl.style.color = 'var(--color-text-info)';
+    val.style.color = 'var(--color-text-info)';
+    val.textContent = 'RLA +' + gf.toLocaleString('es-PE');
+    gfEl.textContent = '+' + gf.toLocaleString('es-PE');
+    gfEl.className = 'card-val rla';
+    gfLbl.textContent = 'RLA 2do lugar';
+  } else {
+    res.style.background = 'var(--color-background-danger)';
+    lbl.style.color = 'var(--color-text-danger)';
+    val.style.color = 'var(--color-text-danger)';
+    val.textContent = 'Sánchez +' + Math.abs(gf).toLocaleString('es-PE');
+    gfEl.textContent = '+' + Math.abs(gf).toLocaleString('es-PE');
+    gfEl.className = 'card-val san';
+    gfLbl.textContent = 'Sánchez 2do lugar';
+  }
+}
+
+['sl-caj','sl-cus','sl-lim'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateProjection);
+});
+
+renderTable();
+updateProjection();
+</script>
