@@ -6,8 +6,11 @@ import { fmtThousands, fmtPct } from './utils/format';
 import Header from './components/Header';
 import ProgressBar from './components/ProgressBar';
 import GapCard from './components/GapCard';
+import NationalCandidatesChart from './components/NationalCandidatesChart';
 import SensitivityPanel from './components/SensitivityPanel';
 import ProjectionResult from './components/ProjectionResult';
+import BreakevenCalculator from './components/BreakevenCalculator';
+import RegionalHeatMap from './components/RegionalHeatMap';
 import RegionalTable from './components/RegionalTable';
 import ModelComparison from './components/ModelComparison';
 import AutoRefreshBadge from './components/AutoRefreshBadge';
@@ -23,7 +26,6 @@ export default function App() {
 
   const { projection } = useProjection(data, adjustments);
 
-  // Primera carga
   if (!data && loading) {
     return (
       <div className="db">
@@ -35,7 +37,6 @@ export default function App() {
     );
   }
 
-  // Error sin datos previos
   if (!data && error) {
     return (
       <div className="db">
@@ -55,7 +56,6 @@ export default function App() {
   const gapFinal = projection?.gapFinal ?? data?.gapFinal;
   const resultado = projection?.resultado ?? data?.resultado;
   const deltaSanchez = projection?.deltaTotalSanchez ?? data?.deltaTotalSanchez;
-
   const isRla = resultado === 'RLA';
 
   return (
@@ -73,11 +73,11 @@ export default function App() {
         <GapCard
           label="Gap actual"
           value={gapActual != null ? fmtThousands(gapActual) : '—'}
-          subtitle="RLA sobre Sánchez"
+          subtitle="RLA sobre Sanchez"
           colorClass="rla"
         />
         <GapCard
-          label="Δ Sánchez pend."
+          label="Δ Sanchez pend."
           value={deltaSanchez != null ? `+${fmtThousands(deltaSanchez)}` : '—'}
           subtitle="votos netos proyect."
           colorClass="san"
@@ -85,17 +85,33 @@ export default function App() {
         <GapCard
           label="Gap proyectado"
           value={gapFinal != null ? `+${fmtThousands(Math.abs(gapFinal))}` : '—'}
-          subtitle={isRla ? 'RLA 2do lugar' : 'Sánchez 2do lugar'}
+          subtitle={isRla ? 'RLA 2do lugar' : 'Sanchez 2do lugar'}
           colorClass={isRla ? 'rla' : 'san'}
         />
       </div>
 
+      <NationalCandidatesChart
+        candidatosNacionales={data?.candidatosNacionales}
+        regiones={data?.regiones}
+      />
+
       <SensitivityPanel
         regiones={data?.regiones}
+        gapActual={gapActual}
         onAdjust={handleAdjust}
       />
 
       <ProjectionResult gapFinal={gapFinal} resultado={resultado} />
+
+      <BreakevenCalculator
+        regiones={data?.regiones}
+        gapActual={gapActual}
+        gapFinal={gapFinal}
+        deltaTotalSanchez={deltaSanchez}
+        nacional={nacional}
+      />
+
+      <RegionalHeatMap regiones={regiones} />
 
       <RegionalTable regiones={regiones} />
 

@@ -25,3 +25,33 @@ export const DEPARTAMENTOS = [
   { nombre: 'Callao',        cod: '240000' },
   { nombre: 'Ucayali',       cod: '250000' },
 ];
+
+// Approximate geographic grid for heatmap (5x5)
+// Row 0 = north, Row 4 = south
+export const REGION_GRID = [
+  { nombre: 'Tumbes',        abbr: 'TUM', row: 0, col: 0 },
+  { nombre: 'Piura',         abbr: 'PIU', row: 0, col: 1 },
+  { nombre: 'Amazonas',      abbr: 'AMA', row: 0, col: 2 },
+  { nombre: 'Loreto',        abbr: 'LOR', row: 0, col: 3 },
+  { nombre: 'San Martín',    abbr: 'SMR', row: 0, col: 4 },
+  { nombre: 'Lambayeque',    abbr: 'LAM', row: 1, col: 0 },
+  { nombre: 'Cajamarca',     abbr: 'CAJ', row: 1, col: 1 },
+  { nombre: 'La Libertad',   abbr: 'LLI', row: 1, col: 2 },
+  { nombre: 'Huánuco',       abbr: 'HUA', row: 1, col: 3 },
+  { nombre: 'Ucayali',       abbr: 'UCA', row: 1, col: 4 },
+  { nombre: 'Ancash',        abbr: 'ANC', row: 2, col: 0 },
+  { nombre: 'Pasco',         abbr: 'PAS', row: 2, col: 1 },
+  { nombre: 'Junín',         abbr: 'JUN', row: 2, col: 2 },
+  { nombre: 'Cusco',         abbr: 'CUS', row: 2, col: 3 },
+  { nombre: 'Madre de Dios', abbr: 'MDD', row: 2, col: 4 },
+  { nombre: 'Lima',          abbr: 'LIM', row: 3, col: 0 },
+  { nombre: 'Callao',        abbr: 'CAL', row: 3, col: 1 },
+  { nombre: 'Huancavelica',  abbr: 'HVC', row: 3, col: 2 },
+  { nombre: 'Ayacucho',      abbr: 'AYA', row: 3, col: 3 },
+  { nombre: 'Apurímac',      abbr: 'APU', row: 3, col: 4 },
+  { nombre: 'Ica',           abbr: 'ICA', row: 4, col: 0 },
+  { nombre: 'Arequipa',      abbr: 'AQP', row: 4, col: 1 },
+  { nombre: 'Moquegua',      abbr: 'MOQ', row: 4, col: 2 },
+  { nombre: 'Tacna',         abbr: 'TAC', row: 4, col: 3 },
+  { nombre: 'Puno',          abbr: 'PUN', row: 4, col: 4 },
+];

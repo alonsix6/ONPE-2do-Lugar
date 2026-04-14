@@ -20,3 +20,10 @@ export function fmtDate(date) {
   const min = String(d.getMinutes()).padStart(2, '0');
   return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
 }
+
+export function fmtCompact(n) {
+  const abs = Math.abs(n);
+  const sign = n >= 0 ? '+' : '-';
+  if (abs >= 1000) return sign + Math.round(abs / 1000) + 'k';
+  return sign + Math.round(abs);
+}
