@@ -11,9 +11,10 @@ import ProjectionResult from './components/ProjectionResult';
 import RegionalTable from './components/RegionalTable';
 import ModelComparison from './components/ModelComparison';
 import AutoRefreshBadge from './components/AutoRefreshBadge';
+import DataUpdater from './components/DataUpdater';
 
 export default function App() {
-  const { data, loading, error, lastUpdated, nextRefresh, refetch, source } = useONPEData();
+  const { data, loading, error, lastUpdated, nextRefresh, refetch, source, setManualData } = useONPEData();
   const [adjustments, setAdjustments] = useState({});
 
   const handleAdjust = useCallback((adj) => {
@@ -43,6 +44,7 @@ export default function App() {
           <span>Error: {error}</span>
           <button onClick={refetch}>Reintentar</button>
         </div>
+        <DataUpdater onUpdate={setManualData} />
       </div>
     );
   }
@@ -59,13 +61,6 @@ export default function App() {
   return (
     <div className="db">
       <Header lastUpdated={lastUpdated} loading={loading} source={source} />
-
-      {error && (
-        <div className="error-box">
-          <span>Error al actualizar: {error} (mostrando datos anteriores)</span>
-          <button onClick={refetch}>Reintentar</button>
-        </div>
-      )}
 
       <ProgressBar percentage={nacional?.actasContabilizadas} />
 
@@ -105,6 +100,8 @@ export default function App() {
       <RegionalTable regiones={regiones} />
 
       <ModelComparison bottomUpResult={projection} />
+
+      <DataUpdater onUpdate={setManualData} />
 
       <AutoRefreshBadge
         nextRefresh={nextRefresh}

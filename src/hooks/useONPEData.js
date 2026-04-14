@@ -1,11 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchONPEDirect } from '../utils/fetchONPE';
 import { STATIC_SNAPSHOT } from '../constants/snapshot';
+import { loadFromLocalStorage, saveToLocalStorage } from '../components/DataUpdater';
 
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutos
-
-// Strategy: browser-direct → Netlify Function → static snapshot
-// WAF blocks servers but browsers work fine
 
 export function useONPEData() {
   const [data, setData] = useState(null);
@@ -13,7 +11,7 @@ export function useONPEData() {
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [nextRefresh, setNextRefresh] = useState(null);
-  const [source, setSource] = useState(null); // 'live' | 'proxy' | 'snapshot'
+  const [source, setSource] = useState(null);
   const hasData = useRef(false);
 
   const fetchData = useCallback(async () => {
@@ -28,6 +26,7 @@ export function useONPEData() {
         setLastUpdated(new Date());
         setNextRefresh(new Date(Date.now() + REFRESH_INTERVAL));
         setSource('live');
+        saveToLocalStorage(json);
         hasData.current = true;
         setLoading(false);
         return;
@@ -48,6 +47,7 @@ export function useONPEData() {
             setLastUpdated(new Date());
             setNextRefresh(new Date(Date.now() + REFRESH_INTERVAL));
             setSource('proxy');
+            saveToLocalStorage(json);
             hasData.current = true;
             setLoading(false);
             return;
@@ -58,18 +58,40 @@ export function useONPEData() {
       console.warn('Netlify proxy failed:', e.message);
     }
 
-    // Strategy 3: Static snapshot fallback
+    // Strategy 3: localStorage (previously pasted data)
+    if (!hasData.current) {
+      const cached = loadFromLocalStorage();
+      if (cached) {
+        setData(cached);
+        setLastUpdated(new Date(cached.timestamp));
+        setSource('manual');
+        hasData.current = true;
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Strategy 4: Static snapshot fallback
     if (!hasData.current) {
       setData(STATIC_SNAPSHOT);
       setLastUpdated(new Date(STATIC_SNAPSHOT.timestamp));
       setSource('snapshot');
       hasData.current = true;
-      setError('API en vivo no disponible — usando snapshot estático');
-    } else {
-      setError('No se pudo actualizar — mostrando datos anteriores');
     }
 
     setLoading(false);
+  }, []);
+
+  // Load from localStorage on mount (before any fetch)
+  useEffect(() => {
+    const cached = loadFromLocalStorage();
+    if (cached) {
+      setData(cached);
+      setLastUpdated(new Date(cached.timestamp));
+      setSource('manual');
+      hasData.current = true;
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -78,5 +100,14 @@ export function useONPEData() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  return { data, loading, error, lastUpdated, nextRefresh, refetch: fetchData, source };
+  // Manual data update from DataUpdater paste
+  const setManualData = useCallback((json) => {
+    setData(json);
+    setLastUpdated(new Date(json.timestamp || Date.now()));
+    setSource('manual');
+    setError(null);
+    hasData.current = true;
+  }, []);
+
+  return { data, loading, error, lastUpdated, nextRefresh, refetch: fetchData, source, setManualData };
 }
