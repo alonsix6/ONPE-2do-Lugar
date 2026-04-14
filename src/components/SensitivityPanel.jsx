@@ -1,57 +1,113 @@
-import { useState, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { getTopImpactRegions, calcRegionBreakeven } from '../utils/sensitivity';
+import { fmtNum } from '../utils/format';
 
-export default function SensitivityPanel({ regiones, onAdjust }) {
-  const caj = regiones?.find(r => r.nombre === 'Cajamarca');
-  const cus = regiones?.find(r => r.nombre === 'Cusco');
-  const lim = regiones?.find(r => r.nombre === 'Lima');
+export default function SensitivityPanel({ regiones, gapActual, onAdjust }) {
+  const topRegions = useMemo(() => {
+    if (!regiones?.length) return [];
+    return getTopImpactRegions(regiones, 5);
+  }, [regiones]);
 
-  const [cajVal, setCajVal] = useState(() => Math.round(caj?.sanchez?.pct ?? 38));
-  const [cusVal, setCusVal] = useState(() => Math.round(cus?.sanchez?.pct ?? 19));
-  const [limVal, setLimVal] = useState(() => Math.round(lim?.rla?.pct ?? 20));
+  const breakevens = useMemo(() => {
+    if (!topRegions.length || gapActual == null) return {};
+    const map = {};
+    for (const r of topRegions) {
+      map[r.nombre] = calcRegionBreakeven(r, gapActual, regiones);
+    }
+    return map;
+  }, [topRegions, gapActual, regiones]);
 
-  const emitAdjust = useCallback((newCaj, newCus, newLim) => {
-    const adj = {};
-    if (caj) adj['Cajamarca'] = { pctSanchez: newCaj, pctRla: caj.rla.pct };
-    if (cus) adj['Cusco'] = { pctSanchez: newCus, pctRla: cus.rla.pct };
-    if (lim) adj['Lima'] = { pctSanchez: lim.sanchez.pct, pctRla: newLim };
-    onAdjust(adj);
-  }, [caj, cus, lim, onAdjust]);
+  // Initialize sliders from current region values
+  const [values, setValues] = useState({});
 
-  const handleCaj = (e) => {
-    const v = Number(e.target.value);
-    setCajVal(v);
-    emitAdjust(v, cusVal, limVal);
-  };
-  const handleCus = (e) => {
-    const v = Number(e.target.value);
-    setCusVal(v);
-    emitAdjust(cajVal, v, limVal);
-  };
-  const handleLim = (e) => {
-    const v = Number(e.target.value);
-    setLimVal(v);
-    emitAdjust(cajVal, cusVal, v);
-  };
+  useEffect(() => {
+    if (!topRegions.length) return;
+    const init = {};
+    for (const r of topRegions) {
+      const be = breakevens[r.nombre];
+      init[r.nombre] = be?.currentValue ?? (r.favorDe === 'RLA' ? r.rla.pct : r.sanchez.pct);
+    }
+    setValues(init);
+  }, [topRegions, breakevens]);
+
+  const handleChange = useCallback((nombre, val) => {
+    setValues(prev => {
+      const next = { ...prev, [nombre]: val };
+      // Build adjustments object
+      const adj = {};
+      for (const r of topRegions) {
+        const be = breakevens[r.nombre];
+        if (!be) continue;
+        const sliderVal = nombre === r.nombre ? val : (next[r.nombre] ?? be.currentValue);
+        if (be.sliderTarget === 'rla') {
+          adj[r.nombre] = { pctRla: sliderVal, pctSanchez: r.sanchez.pct };
+        } else {
+          adj[r.nombre] = { pctSanchez: sliderVal, pctRla: r.rla.pct };
+        }
+      }
+      onAdjust(adj);
+      return next;
+    });
+  }, [topRegions, breakevens, onAdjust]);
+
+  if (!topRegions.length) return null;
 
   return (
     <div className="section">
-      <div className="section-title">Análisis de sensibilidad</div>
+      <div className="section-title">Analisis de sensibilidad — Top 5 regiones por impacto</div>
       <div className="proj-box">
-        <div className="slider-row">
-          <label>Sánchez en Cajamarca</label>
-          <input type="range" min="35" max="52" step="1" value={cajVal} onChange={handleCaj} />
-          <span>{cajVal}%</span>
-        </div>
-        <div className="slider-row">
-          <label>Sánchez en Cusco</label>
-          <input type="range" min="15" max="30" step="1" value={cusVal} onChange={handleCus} />
-          <span>{cusVal}%</span>
-        </div>
-        <div className="slider-row">
-          <label>RLA en Lima pend.</label>
-          <input type="range" min="15" max="25" step="1" value={limVal} onChange={handleLim} />
-          <span>{limVal}%</span>
-        </div>
+        {topRegions.map(r => {
+          const be = breakevens[r.nombre];
+          if (!be) return null;
+          const current = be.currentValue;
+          const val = values[r.nombre] ?? current;
+          const min = Math.max(0, Math.floor(current - 15));
+          const max = Math.min(100, Math.ceil(current + 15));
+          const isRla = be.sliderTarget === 'rla';
+          const label = isRla ? `RLA en ${r.nombre}` : `Sanchez en ${r.nombre}`;
+
+          // Impact of current slider vs original
+          const origDelta = r.delta;
+          const newDelta = r.votosPend * ((isRla ? (r.sanchez.pct - val) : (val - r.rla.pct)) / 100);
+          const impact = Math.round(newDelta - origDelta);
+
+          // Breakeven position on slider (0-100% of track)
+          const bePos = be.isReachable
+            ? ((be.breakevenValue - min) / (max - min)) * 100
+            : null;
+
+          return (
+            <div key={r.nombre} className="slider-group">
+              <div className="slider-row">
+                <label>{label}</label>
+                <div className="slider-track-wrap">
+                  <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    step="0.5"
+                    value={val}
+                    onChange={e => handleChange(r.nombre, parseFloat(e.target.value))}
+                  />
+                  {bePos != null && bePos >= 0 && bePos <= 100 && (
+                    <div className="slider-breakeven-mark" style={{ left: `${bePos}%` }} title="Punto de cruce" />
+                  )}
+                </div>
+                <span>{val.toFixed(1)}%</span>
+              </div>
+              <div className="slider-meta">
+                <span className="slider-impact" style={{ color: impact > 0 ? '#A32D2D' : impact < 0 ? '#185FA5' : 'var(--color-text-tertiary)' }}>
+                  {impact !== 0 ? `Δ ${fmtNum(impact)} vs actual` : 'sin cambio'}
+                </span>
+                {be.isReachable && (
+                  <span className="slider-breakeven-label">
+                    Cruce: {be.breakevenValue.toFixed(1)}%
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
