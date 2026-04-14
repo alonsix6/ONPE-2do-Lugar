@@ -126,9 +126,24 @@ const rlaNacVotos  = regiones.reduce((s,r) => s + r.votosRla, 0);
 const sanNacVotos  = regiones.reduce((s,r) => s + r.votosSanchez, 0);
 const GAP_ACTUAL   = rlaNacVotos - sanNacVotos;
 
-const totalActasNac       = regiones.reduce((s,r) => s + r.totalActas, 0);
-const totalContabilizadas = regiones.reduce((s,r) => s + r.contabilizadas, 0);
-const pctProcesadoNac     = parseFloat((totalContabilizadas / totalActasNac * 100).toFixed(3));
+const totalActasNacReg       = regiones.reduce((s,r) => s + r.totalActas, 0);
+const totalContabilizadasReg = regiones.reduce((s,r) => s + r.contabilizadas, 0);
+
+// Intentar endpoint nacional para % exacto (puede fallar con 204)
+let nacOficial = null;
+try {
+  nacOficial = await get('/presentacion-backend/resumen-general/totales?idAmbitoGeografico=1&idEleccion=10&tipoFiltro=nacional');
+  if (nacOficial) console.log('Nacional OK: ' + nacOficial.actasContabilizadas + '% (' + nacOficial.contabilizadas + '/' + nacOficial.totalActas + ')');
+} catch(e) {}
+
+const nacional = nacOficial || {
+  actasContabilizadas: parseFloat((totalContabilizadasReg / totalActasNacReg * 100).toFixed(3)),
+  contabilizadas: totalContabilizadasReg,
+  totalActas: totalActasNacReg,
+};
+const pctProcesadoNac = nacional.actasContabilizadas;
+const nacSource = nacOficial ? 'oficial' : 'regional';
+console.log('% procesado (' + nacSource + '): ' + pctProcesadoNac + '%');
 
 regiones.sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
 const deltaTotalSanchez = regiones.reduce((s,r) => s + r.delta, 0);
@@ -144,8 +159,10 @@ console.log(gapFinal > 0 ? 'RLA 2do lugar' : 'Sanchez 2do lugar');
 const exportData = {
   timestamp: Date.now(),
   pctProcesado: pctProcesadoNac,
-  totalActasNac,
-  totalContabilizadas,
+  totalActasNac: nacional.totalActas,
+  totalContabilizadas: nacional.contabilizadas,
+  nacional: nacional,
+  nacSource: nacSource,
   gapActual: GAP_ACTUAL,
   rlaNacVotos,
   sanNacVotos,
