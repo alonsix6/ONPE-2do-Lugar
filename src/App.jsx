@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useONPEData } from './hooks/useONPEData';
 import { useProjection } from './hooks/useProjection';
 import { fmtThousands, fmtPct } from './utils/format';
+import { exportToExcel } from './utils/exportExcel';
 
 import Header from './components/Header';
 import ProgressBar from './components/ProgressBar';
@@ -117,7 +118,12 @@ export default function App() {
 
       <ModelComparison bottomUpResult={projection} />
 
-      <DataUpdater onUpdate={setManualData} />
+      <div className="actions-row">
+        <DataUpdater onUpdate={setManualData} />
+        <button className="export-btn" onClick={() => exportToExcel(data)}>
+          Exportar Excel
+        </button>
+      </div>
 
       <AutoRefreshBadge
         nextRefresh={nextRefresh}

@@ -213,6 +213,28 @@ body {
 }
 .collapsible-arrow { margin-left: 8px; font-size: 10px; }
 
+/* Actions row */
+.actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.actions-row .updater-btn { margin: 0; }
+.export-btn {
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 6px 16px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+}
+.export-btn:hover { background: var(--color-border-tertiary); }
+
 /* Breakeven Calculator */
 .breakeven-gauge {
   position: relative;
