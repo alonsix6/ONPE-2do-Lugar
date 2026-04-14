@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchONPEDirect } from '../utils/fetchONPE';
 import { STATIC_SNAPSHOT } from '../constants/snapshot';
 import { loadFromLocalStorage, saveToLocalStorage, loadFromHash } from '../components/DataUpdater';
+import { normalizeData } from '../utils/normalize';
 
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutos
 
@@ -15,31 +16,31 @@ export function useONPEData() {
   const hasData = useRef(false);
   const initDone = useRef(false);
 
+  function loadData(raw, src) {
+    const normalized = normalizeData(raw);
+    setData(normalized);
+    setLastUpdated(new Date(normalized.timestamp || Date.now()));
+    setSource(src);
+    hasData.current = true;
+    saveToLocalStorage(normalized);
+  }
+
   // On mount: check hash fragment first (auto-transfer from ONPE console)
   useEffect(() => {
     if (initDone.current) return;
     initDone.current = true;
 
-    // Priority 1: hash fragment (just transferred from ONPE console)
     const hashData = loadFromHash();
     if (hashData) {
-      setData(hashData);
-      setLastUpdated(new Date(hashData.timestamp || Date.now()));
-      setSource('manual');
+      loadData(hashData, 'manual');
       setLoading(false);
-      hasData.current = true;
-      saveToLocalStorage(hashData);
       return;
     }
 
-    // Priority 2: localStorage (previously saved data)
     const cached = loadFromLocalStorage();
     if (cached) {
-      setData(cached);
-      setLastUpdated(new Date(cached.timestamp || Date.now()));
-      setSource('manual');
+      loadData(cached, 'manual');
       setLoading(false);
-      hasData.current = true;
     }
   }, []);
 
@@ -51,12 +52,8 @@ export function useONPEData() {
     try {
       const json = await fetchONPEDirect();
       if (json.regiones && json.regiones.length > 0) {
-        setData(json);
-        setLastUpdated(new Date());
+        loadData(json, 'live');
         setNextRefresh(new Date(Date.now() + REFRESH_INTERVAL));
-        setSource('live');
-        saveToLocalStorage(json);
-        hasData.current = true;
         setLoading(false);
         return;
       }
@@ -72,12 +69,8 @@ export function useONPEData() {
         if (ct.includes('application/json')) {
           const json = await res.json();
           if (!json.error && json.regiones) {
-            setData(json);
-            setLastUpdated(new Date());
+            loadData(json, 'proxy');
             setNextRefresh(new Date(Date.now() + REFRESH_INTERVAL));
-            setSource('proxy');
-            saveToLocalStorage(json);
-            hasData.current = true;
             setLoading(false);
             return;
           }
@@ -87,12 +80,9 @@ export function useONPEData() {
       console.warn('Netlify proxy failed:', e.message);
     }
 
-    // Strategy 3: localStorage / static snapshot (already loaded on mount)
+    // Strategy 3: static snapshot
     if (!hasData.current) {
-      setData(STATIC_SNAPSHOT);
-      setLastUpdated(new Date(STATIC_SNAPSHOT.timestamp));
-      setSource('snapshot');
-      hasData.current = true;
+      loadData(STATIC_SNAPSHOT, 'snapshot');
     }
 
     setLoading(false);
@@ -105,12 +95,8 @@ export function useONPEData() {
   }, [fetchData]);
 
   const setManualData = useCallback((json) => {
-    setData(json);
-    setLastUpdated(new Date(json.timestamp || Date.now()));
-    setSource('manual');
+    loadData(json, 'manual');
     setError(null);
-    hasData.current = true;
-    saveToLocalStorage(json);
   }, []);
 
   return { data, loading, error, lastUpdated, nextRefresh, refetch: fetchData, source, setManualData };
