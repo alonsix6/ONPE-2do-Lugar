@@ -21,14 +21,30 @@ const DEPS = [
   {n:'Ucayali',c:'250000'}
 ];
 
-async function get(url) {
-  const r = await fetch(url, { headers: { Accept: 'application/json' } });
-  console.log(url.split('?')[0].split('/').pop(), '-> HTTP', r.status, r.headers.get('content-type'));
-  const t = await r.text();
-  if (!t || t.length < 10) { console.warn('Respuesta vacia (' + t.length + ' chars)'); return null; }
-  if (t.startsWith('<')) { console.warn('Respuesta HTML, no JSON. Estas en resultadoelectoral.onpe.gob.pe?'); return null; }
-  try { const j = JSON.parse(t); if (!j.success) { console.warn('success=false'); return null; } return j.data; }
-  catch (e) { console.warn('JSON parse error:', e.message, 'Body:', t.slice(0, 80)); return null; }
+function get(url) {
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.onload = function() {
+      const label = url.split('?')[0].split('/').pop();
+      console.log(label, '-> HTTP', xhr.status, xhr.responseText.length, 'chars');
+      if (xhr.status !== 200 || !xhr.responseText || xhr.responseText.length < 10) {
+        console.warn(label, ': respuesta vacia o error');
+        resolve(null); return;
+      }
+      if (xhr.responseText.startsWith('<')) {
+        console.warn(label, ': HTML en vez de JSON');
+        resolve(null); return;
+      }
+      try {
+        const j = JSON.parse(xhr.responseText);
+        resolve(j.success ? j.data : null);
+      } catch(e) { console.warn(label, 'parse error:', xhr.responseText.slice(0, 80)); resolve(null); }
+    };
+    xhr.onerror = function() { console.warn('XHR error:', url.split('/').pop()); resolve(null); };
+    xhr.send();
+  });
 }
 
 function find(arr, kw) {
