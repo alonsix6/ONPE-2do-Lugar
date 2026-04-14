@@ -5,7 +5,7 @@ import { fmtNum } from '../utils/format';
 export default function SensitivityPanel({ regiones, gapActual, onAdjust }) {
   const topRegions = useMemo(() => {
     if (!regiones?.length) return [];
-    return getTopImpactRegions(regiones, 5);
+    return getTopImpactRegions(regiones, 10);
   }, [regiones]);
 
   const breakevens = useMemo(() => {
@@ -54,7 +54,7 @@ export default function SensitivityPanel({ regiones, gapActual, onAdjust }) {
 
   return (
     <div className="section">
-      <div className="section-title">Analisis de sensibilidad — Top 5 regiones por impacto</div>
+      <div className="section-title">Analisis de sensibilidad — Top 10 regiones por impacto</div>
       <div className="proj-box">
         {topRegions.map(r => {
           const be = breakevens[r.nombre];
