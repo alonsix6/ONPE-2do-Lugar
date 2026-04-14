@@ -15,6 +15,7 @@ import RegionalHeatMap from './components/RegionalHeatMap';
 import RegionalTable from './components/RegionalTable';
 import ModelComparison from './components/ModelComparison';
 import AutoRefreshBadge from './components/AutoRefreshBadge';
+import VoteTotals from './components/VoteTotals';
 import DataUpdater from './components/DataUpdater';
 
 export default function App() {
@@ -101,6 +102,8 @@ export default function App() {
         gapActual={gapActual}
         onAdjust={handleAdjust}
       />
+
+      <VoteTotals regiones={data?.regiones} regionesAjustadas={projection?.regionesAjustadas} />
 
       <ProjectionResult gapFinal={gapFinal} resultado={resultado} />
 
