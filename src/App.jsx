@@ -13,7 +13,7 @@ import ModelComparison from './components/ModelComparison';
 import AutoRefreshBadge from './components/AutoRefreshBadge';
 
 export default function App() {
-  const { data, loading, error, lastUpdated, nextRefresh, refetch } = useONPEData();
+  const { data, loading, error, lastUpdated, nextRefresh, refetch, isLive } = useONPEData();
   const [adjustments, setAdjustments] = useState({});
 
   const handleAdjust = useCallback((adj) => {
@@ -58,7 +58,7 @@ export default function App() {
 
   return (
     <div className="db">
-      <Header lastUpdated={lastUpdated} loading={loading} />
+      <Header lastUpdated={lastUpdated} loading={loading} isLive={isLive} />
 
       {error && (
         <div className="error-box">

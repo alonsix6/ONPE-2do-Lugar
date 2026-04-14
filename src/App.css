@@ -55,6 +55,10 @@ body {
   letter-spacing: .05em;
   animation: pulse 1.5s ease-in-out infinite;
 }
+.live-badge.cached {
+  background: #EF9F27;
+  animation: none;
+}
 .live-badge.loading {
   background: var(--color-text-tertiary);
   animation: none;
