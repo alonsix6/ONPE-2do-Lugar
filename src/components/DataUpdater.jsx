@@ -23,10 +23,12 @@ const DEPS = [
 
 async function get(url) {
   const r = await fetch(url, { headers: { Accept: 'application/json' } });
+  console.log(url.split('?')[0].split('/').pop(), '-> HTTP', r.status, r.headers.get('content-type'));
   const t = await r.text();
-  if (!t || t.length < 10) return null;
-  try { const j = JSON.parse(t); return j.success ? j.data : null; }
-  catch { return null; }
+  if (!t || t.length < 10) { console.warn('Respuesta vacia (' + t.length + ' chars)'); return null; }
+  if (t.startsWith('<')) { console.warn('Respuesta HTML, no JSON. Estas en resultadoelectoral.onpe.gob.pe?'); return null; }
+  try { const j = JSON.parse(t); if (!j.success) { console.warn('success=false'); return null; } return j.data; }
+  catch (e) { console.warn('JSON parse error:', e.message, 'Body:', t.slice(0, 80)); return null; }
 }
 
 function find(arr, kw) {
@@ -35,9 +37,12 @@ function find(arr, kw) {
 }
 
 console.log('Obteniendo datos nacionales...');
+console.log('URL base:', location.origin);
 const nacTot = await get(BASE + '/resumen-general/totales?idAmbitoGeografico=1&idEleccion=10&tipoFiltro=nacional');
 const nacVot = await get(BASE + '/eleccion-presidencial/participantes-ubicacion-geografica-nombre?tipoFiltro=nacional&idAmbitoGeografico=1&idEleccion=10');
-if (!nacTot || !nacVot) { console.error('No se pudo obtener datos nacionales'); return; }
+console.log('nacTot:', nacTot ? 'OK (' + (nacTot.contabilizadas||'?') + ' actas)' : 'FALLO');
+console.log('nacVot:', nacVot ? 'OK (' + (Array.isArray(nacVot) ? nacVot.length + ' candidatos' : typeof nacVot) + ')' : 'FALLO');
+if (!nacTot || !nacVot) { console.error('No se pudo obtener datos nacionales. Verifica que estas en resultadoelectoral.onpe.gob.pe'); return; }
 
 const cands = nacVot.filter(c => c.porcentajeVotosValidos != null);
 const rlaNac = find(cands, 'LOPEZ ALIAGA');
