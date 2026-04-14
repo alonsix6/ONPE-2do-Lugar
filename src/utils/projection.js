@@ -5,7 +5,12 @@ export function calcBottomUp(regiones, gapActual, adjustments = {}) {
     const pctSanchezNew = adj.pctSanchez ?? r.sanchez.pct;
     const pctRlaNew = adj.pctRla ?? r.rla.pct;
     const deltaNew = r.votosPend * ((pctSanchezNew - pctRlaNew) / 100);
-    return { ...r, delta: Math.round(deltaNew) };
+    return {
+      ...r,
+      delta: Math.round(deltaNew),
+      rla: { ...r.rla, pct: pctRlaNew },
+      sanchez: { ...r.sanchez, pct: pctSanchezNew },
+    };
   });
 
   const deltaTotalSanchez = regionesAjustadas.reduce((s, r) => s + r.delta, 0);
