@@ -1,0 +1,51 @@
+// Static snapshot from ONPE data at 14/04/2026 00:39 (68.9% actas procesadas)
+// Used as fallback when the live API is not accessible from server-side
+
+export const STATIC_SNAPSHOT = {
+  timestamp: 1713058740000, // 14/04/2026 00:39 UTC-5
+  nacional: {
+    actasContabilizadas: 68.886,
+    contabilizadas: 63903,
+    totalActas: 92766,
+    actasPendientesJee: 30.351,
+    pendientesJee: 28155,
+  },
+  gapActual: 470551,
+  deltaTotalSanchez: 247109,
+  gapFinal: 223442,
+  resultado: 'RLA',
+  candidatosNacionales: [
+    { nombre: 'KEIKO FUJIMORI', partido: 'FUERZA POPULAR', pct: 17.1 },
+    { nombre: 'ROBERTO HELBERT SANCHEZ PALOMINO', partido: 'JUNTOS POR EL PERÚ', pct: 12.4 },
+    { nombre: 'RAFAEL LOPEZ ALIAGA', partido: 'RENOVACIÓN POPULAR', pct: 11.3 },
+    { nombre: 'DANIEL NIETO', partido: 'FRENTE DE LA ESPERANZA', pct: 10.7 },
+    { nombre: 'RICARDO BELMONT', partido: 'PERÚ LIBRE', pct: 10.2 },
+  ],
+  regiones: [
+    { nombre:'Cajamarca', cod:'060000', pctProcesado:47.0, totalActas:4240, contabilizadas:1991, actasPend:2249, votosPend:372939, rla:{votos:4815,pct:3.65}, sanchez:{votos:50173,pct:38.05}, delta:128306, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Lima', cod:'140000', pctProcesado:88.0, totalActas:29125, contabilizadas:25630, actasPend:3495, votosPend:731883, rla:{votos:827640,pct:20.09}, sanchez:{votos:131090,pct:3.18}, delta:-123769, favorDe:'RLA', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Puno', cod:'200000', pctProcesado:69.8, totalActas:3384, contabilizadas:2359, actasPend:1025, votosPend:198693, rla:{votos:3244,pct:2.08}, sanchez:{votos:37326,pct:23.92}, delta:43451, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Cusco', cod:'070000', pctProcesado:61.6, totalActas:3932, contabilizadas:2404, actasPend:1528, votosPend:280714, rla:{votos:8910,pct:5.61}, sanchez:{votos:29413,pct:18.51}, delta:36201, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'San Martín', cod:'210000', pctProcesado:52.3, totalActas:2520, contabilizadas:1311, actasPend:1209, votosPend:196511, rla:{votos:5393,pct:6.23}, sanchez:{votos:19327,pct:22.33}, delta:31654, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Apurímac', cod:'030000', pctProcesado:61.4, totalActas:1320, contabilizadas:811, actasPend:509, votosPend:82970, rla:{votos:1959,pct:3.66}, sanchez:{votos:20777,pct:38.81}, delta:29167, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Huánuco', cod:'090000', pctProcesado:58.4, totalActas:2337, contabilizadas:1362, actasPend:975, votosPend:151765, rla:{votos:6329,pct:7.04}, sanchez:{votos:21320,pct:23.73}, delta:25341, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Huancavelica', cod:'080000', pctProcesado:66.3, totalActas:1280, contabilizadas:851, actasPend:429, votosPend:60995, rla:{votos:1310,pct:2.33}, sanchez:{votos:23512,pct:41.82}, delta:24095, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Amazonas', cod:'010000', pctProcesado:45.0, totalActas:1560, contabilizadas:703, actasPend:857, votosPend:102269, rla:{votos:2015,pct:4.34}, sanchez:{votos:12930,pct:27.85}, delta:24044, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Ayacucho', cod:'050000', pctProcesado:68.2, totalActas:1900, contabilizadas:1296, actasPend:604, votosPend:95116, rla:{votos:2644,pct:3.09}, sanchez:{votos:23068,pct:26.94}, delta:22692, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Ancash', cod:'020000', pctProcesado:67.0, totalActas:3390, contabilizadas:2275, actasPend:1147, votosPend:184436, rla:{votos:9320,pct:6.20}, sanchez:{votos:21403,pct:14.24}, delta:14832, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'La Libertad', cod:'120000', pctProcesado:57.2, totalActas:5268, contabilizadas:3001, actasPend:2267, votosPend:426740, rla:{votos:19540,pct:9.84}, sanchez:{votos:12886,pct:6.49}, delta:-14291, favorDe:'RLA', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Madre de Dios', cod:'160000', pctProcesado:43.4, totalActas:660, contabilizadas:287, actasPend:373, votosPend:48752, rla:{votos:720,pct:3.81}, sanchez:{votos:3573,pct:18.92}, delta:7367, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Ica', cod:'100000', pctProcesado:59.1, totalActas:2448, contabilizadas:1448, actasPend:1000, votosPend:201049, rla:{votos:9588,pct:10.02}, sanchez:{votos:6875,pct:7.18}, delta:-5707, favorDe:'RLA', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Callao', cod:'240000', pctProcesado:93.4, totalActas:2862, contabilizadas:2672, actasPend:190, votosPend:38016, rla:{votos:26549,pct:15.08}, sanchez:{votos:5247,pct:2.98}, delta:-4600, favorDe:'RLA', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Pasco', cod:'180000', pctProcesado:66.2, totalActas:800, contabilizadas:530, actasPend:271, votosPend:42510, rla:{votos:2340,pct:6.70}, sanchez:{votos:5909,pct:16.90}, delta:4337, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Arequipa', cod:'040000', pctProcesado:78.3, totalActas:4713, contabilizadas:3698, actasPend:915, votosPend:193038, rla:{votos:27230,pct:11.14}, sanchez:{votos:22375,pct:9.15}, delta:-3840, favorDe:'RLA', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Junín', cod:'110000', pctProcesado:69.0, totalActas:3767, contabilizadas:2598, actasPend:1145, votosPend:208771, rla:{votos:14020,pct:8.18}, sanchez:{votos:16450,pct:9.60}, delta:2963, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Ucayali', cod:'250000', pctProcesado:53.7, totalActas:1565, contabilizadas:840, actasPend:724, votosPend:109392, rla:{votos:3267,pct:5.89}, sanchez:{votos:4689,pct:8.45}, delta:2798, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Tacna', cod:'220000', pctProcesado:76.8, totalActas:1044, contabilizadas:802, actasPend:242, votosPend:52302, rla:{votos:3455,pct:6.56}, sanchez:{votos:5725,pct:10.88}, delta:2259, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Lambayeque', cod:'130000', pctProcesado:69.4, totalActas:3584, contabilizadas:2485, actasPend:1099, votosPend:208745, rla:{votos:15408,pct:9.39}, sanchez:{votos:14915,pct:9.09}, delta:-627, favorDe:'RLA', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Moquegua', cod:'170000', pctProcesado:94.3, totalActas:570, contabilizadas:537, actasPend:33, votosPend:6510, rla:{votos:2040,pct:5.80}, sanchez:{votos:4521,pct:12.85}, delta:459, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Piura', cod:'190000', pctProcesado:51.7, totalActas:5280, contabilizadas:2729, actasPend:2551, votosPend:434068, rla:{votos:14612,pct:8.11}, sanchez:{votos:14522,pct:8.06}, delta:-217, favorDe:'RLA', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Tumbes', cod:'230000', pctProcesado:79.3, totalActas:636, contabilizadas:504, actasPend:131, votosPend:22883, rla:{votos:1975,pct:5.94}, sanchez:{votos:2123,pct:6.39}, delta:103, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+    { nombre:'Loreto', cod:'150000', pctProcesado:51.8, totalActas:2704, contabilizadas:1403, actasPend:1301, votosPend:182093, rla:{votos:6459,pct:6.97}, sanchez:{votos:6505,pct:7.02}, delta:91, favorDe:'SANCHEZ', keiko:null, belmont:null, todosLosCandidatos:[] },
+  ],
+};
