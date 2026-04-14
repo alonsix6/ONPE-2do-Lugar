@@ -3,115 +3,163 @@ import { useState } from 'react';
 const LS_KEY = 'onpe-2026-data';
 const DASHBOARD_URL = 'https://segundo-lugar-onpe26.netlify.app';
 
-// Script para consola de ONPE — usa URLs relativas (corre en el dominio ONPE)
-// Usa .text() + JSON.parse() para manejar respuestas vacias
-// Calcula gap desde datos nacionales (NO hardcodeado)
+// Script v5 del usuario — funciona en consola de ONPE
+// Al final abre el dashboard con los datos via hash fragment
 const SCRAPER_SCRIPT = `(async () => {
-try {
-const BASE = '/presentacion-backend';
-const DEPS = [
-  {n:'Amazonas',c:'010000'},{n:'Ancash',c:'020000'},{n:'Apurimac',c:'030000'},
-  {n:'Arequipa',c:'040000'},{n:'Ayacucho',c:'050000'},{n:'Cajamarca',c:'060000'},
-  {n:'Cusco',c:'070000'},{n:'Huancavelica',c:'080000'},{n:'Huanuco',c:'090000'},
-  {n:'Ica',c:'100000'},{n:'Junin',c:'110000'},{n:'La Libertad',c:'120000'},
-  {n:'Lambayeque',c:'130000'},{n:'Lima',c:'140000'},{n:'Loreto',c:'150000'},
-  {n:'Madre de Dios',c:'160000'},{n:'Moquegua',c:'170000'},{n:'Pasco',c:'180000'},
-  {n:'Piura',c:'190000'},{n:'Puno',c:'200000'},{n:'San Martin',c:'210000'},
-  {n:'Tacna',c:'220000'},{n:'Tumbes',c:'230000'},{n:'Callao',c:'240000'},
-  {n:'Ucayali',c:'250000'}
+
+const DEPARTAMENTOS = [
+  { nombre: 'Amazonas',      cod: '010000' },
+  { nombre: 'Ancash',        cod: '020000' },
+  { nombre: 'Apurimac',      cod: '030000' },
+  { nombre: 'Arequipa',      cod: '040000' },
+  { nombre: 'Ayacucho',      cod: '050000' },
+  { nombre: 'Cajamarca',     cod: '060000' },
+  { nombre: 'Cusco',         cod: '070000' },
+  { nombre: 'Huancavelica',  cod: '080000' },
+  { nombre: 'Huanuco',       cod: '090000' },
+  { nombre: 'Ica',           cod: '100000' },
+  { nombre: 'Junin',         cod: '110000' },
+  { nombre: 'La Libertad',   cod: '120000' },
+  { nombre: 'Lambayeque',    cod: '130000' },
+  { nombre: 'Lima',          cod: '140000' },
+  { nombre: 'Loreto',        cod: '150000' },
+  { nombre: 'Madre de Dios', cod: '160000' },
+  { nombre: 'Moquegua',      cod: '170000' },
+  { nombre: 'Pasco',         cod: '180000' },
+  { nombre: 'Piura',         cod: '190000' },
+  { nombre: 'Puno',          cod: '200000' },
+  { nombre: 'San Martin',    cod: '210000' },
+  { nombre: 'Tacna',         cod: '220000' },
+  { nombre: 'Tumbes',        cod: '230000' },
+  { nombre: 'Callao',        cod: '240000' },
+  { nombre: 'Ucayali',       cod: '250000' },
 ];
 
-function get(url) {
-  return new Promise((resolve) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.setRequestHeader('Accept', 'application/json');
-    xhr.onload = function() {
-      const label = url.split('?')[0].split('/').pop();
-      console.log(label, '-> HTTP', xhr.status, xhr.responseText.length, 'chars');
-      if (xhr.status !== 200 || !xhr.responseText || xhr.responseText.length < 10) {
-        console.warn(label, ': respuesta vacia o error');
-        resolve(null); return;
-      }
-      if (xhr.responseText.startsWith('<')) {
-        console.warn(label, ': HTML en vez de JSON');
-        resolve(null); return;
-      }
-      try {
-        const j = JSON.parse(xhr.responseText);
-        resolve(j.success ? j.data : null);
-      } catch(e) { console.warn(label, 'parse error:', xhr.responseText.slice(0, 80)); resolve(null); }
-    };
-    xhr.onerror = function() { console.warn('XHR error:', url.split('/').pop()); resolve(null); };
-    xhr.send();
-  });
+async function get(url) {
+  const r = await fetch(url, { headers: { Accept: 'application/json' } });
+  const text = await r.text();
+  if (!text || text.length < 10) return null;
+  try {
+    const j = JSON.parse(text);
+    return j.success ? j.data : null;
+  } catch(e) {
+    return null;
+  }
 }
 
-function find(arr, kw) {
-  const nm = s => s.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toUpperCase();
-  return arr.find(c => c.nombreCandidato && nm(c.nombreCandidato).includes(nm(kw)));
+function findCand(arr, keyword) {
+  const norm = s => s.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toUpperCase();
+  return arr.find(c => c.nombreCandidato && norm(c.nombreCandidato).includes(norm(keyword)));
 }
 
-console.log('Obteniendo datos nacionales...');
-console.log('URL base:', location.origin);
-const nacTot = await get(BASE + '/resumen-general/totales?idAmbitoGeografico=1&idEleccion=10&tipoFiltro=nacional');
-const nacVot = await get(BASE + '/eleccion-presidencial/participantes-ubicacion-geografica-nombre?tipoFiltro=nacional&idAmbitoGeografico=1&idEleccion=10');
-console.log('nacTot:', nacTot ? 'OK (' + (nacTot.contabilizadas||'?') + ' actas)' : 'FALLO');
-console.log('nacVot:', nacVot ? 'OK (' + (Array.isArray(nacVot) ? nacVot.length + ' candidatos' : typeof nacVot) + ')' : 'FALLO');
-if (!nacTot || !nacVot) { console.error('No se pudo obtener datos nacionales. Verifica que estas en resultadoelectoral.onpe.gob.pe'); return; }
-
-const cands = nacVot.filter(c => c.porcentajeVotosValidos != null);
-const rlaNac = find(cands, 'LOPEZ ALIAGA');
-const sanNac = find(cands, 'SANCHEZ PALOMINO');
-const gapActual = rlaNac && sanNac ? rlaNac.totalVotosValidos - sanNac.totalVotosValidos : 0;
-console.log('Gap actual RLA-Sanchez: ' + gapActual.toLocaleString());
+console.log('%cONPE 2026 — Bottom-Up v5', 'color:#003770;font-size:15px;font-weight:bold');
+console.log('Consultando 25 regiones...\\n');
 
 const regiones = [];
-for (let i = 0; i < DEPS.length; i++) {
-  const d = DEPS[i];
-  const [tot, vot] = await Promise.all([
-    get(BASE + '/resumen-general/totales?idAmbitoGeografico=1&idEleccion=10&tipoFiltro=ubigeo_nivel_01&idUbigeoDepartamento=' + d.c),
-    get(BASE + '/eleccion-presidencial/participantes-ubicacion-geografica-nombre?tipoFiltro=ubigeo_nivel_01&idAmbitoGeografico=1&ubigeoNivel1=' + d.c + '&idEleccion=10')
+let totalVotosPendEst = 0;
+
+for (const dep of DEPARTAMENTOS) {
+  const [totales, votos] = await Promise.all([
+    get('/presentacion-backend/resumen-general/totales?idAmbitoGeografico=1&idEleccion=10&tipoFiltro=ubigeo_nivel_01&idUbigeoDepartamento=' + dep.cod),
+    get('/presentacion-backend/eleccion-presidencial/participantes-ubicacion-geografica-nombre?tipoFiltro=ubigeo_nivel_01&idAmbitoGeografico=1&ubigeoNivel1=' + dep.cod + '&idEleccion=10'),
   ]);
-  if (!tot || !vot) { console.warn(d.n + ': sin datos'); continue; }
-  const rla = find(vot, 'LOPEZ ALIAGA');
-  const san = find(vot, 'SANCHEZ PALOMINO');
-  if (!rla || !san) { console.warn(d.n + ': candidatos no encontrados'); continue; }
-  const ta = tot.totalActas || 0, co = tot.contabilizadas || 0, ac = tot.actasContabilizadas || 0;
-  const ap = ta - co;
-  const tvr = rla.porcentajeVotosValidos > 0 ? rla.totalVotosValidos / (rla.porcentajeVotosValidos / 100) : 0;
-  const vxa = co > 0 ? tvr / co : 160;
-  const vp = ap * vxa;
-  const delta = vp * ((san.porcentajeVotosValidos - rla.porcentajeVotosValidos) / 100);
+
+  if (!totales || !votos) { console.warn('Sin datos: ' + dep.nombre); continue; }
+
+  const candidatos = votos.filter(c => c.porcentajeVotosValidos != null);
+  const rla     = findCand(candidatos, 'LOPEZ ALIAGA');
+  const sanchez = findCand(candidatos, 'SANCHEZ PALOMINO');
+  const keiko   = findCand(candidatos, 'FUJIMORI');
+  const belmont = findCand(candidatos, 'BELMONT');
+  const nieto   = findCand(candidatos, 'NIETO');
+
+  if (!rla || !sanchez) { console.warn('Candidatos no encontrados: ' + dep.nombre); continue; }
+
+  const totalActas     = totales.totalActas || 0;
+  const contabilizadas = totales.contabilizadas || 0;
+  const actasPend      = totalActas - contabilizadas;
+  const pctProcesado   = totales.actasContabilizadas || 0;
+
+  const totalValidosReg = rla.porcentajeVotosValidos > 0
+    ? rla.totalVotosValidos / (rla.porcentajeVotosValidos / 100) : 0;
+  const votosXActa = contabilizadas > 0 ? totalValidosReg / contabilizadas : 160;
+  const votosPend  = actasPend * votosXActa;
+
+  const pctRla     = rla.porcentajeVotosValidos;
+  const pctSanchez = sanchez.porcentajeVotosValidos;
+  const delta      = Math.round(votosPend * ((pctSanchez - pctRla) / 100));
+
+  totalVotosPendEst += votosPend;
+
   regiones.push({
-    nombre: d.n, cod: d.c, pctProcesado: ac, totalActas: ta, contabilizadas: co,
-    actasPend: ap, votosPend: Math.round(vp),
-    rla: { votos: rla.totalVotosValidos, pct: rla.porcentajeVotosValidos },
-    sanchez: { votos: san.totalVotosValidos, pct: san.porcentajeVotosValidos },
-    delta: Math.round(delta), favorDe: delta > 0 ? 'SANCHEZ' : 'RLA',
-    keiko: null, belmont: null, todosLosCandidatos: []
+    nombre: dep.nombre, cod: dep.cod,
+    pctProc: parseFloat(pctProcesado.toFixed(1)),
+    totalActas, contabilizadas, actasPend,
+    votosPend: Math.round(votosPend),
+    pctRla: parseFloat(pctRla.toFixed(2)),
+    pctSanchez: parseFloat(pctSanchez.toFixed(2)),
+    pctKeiko:   keiko   ? parseFloat(keiko.porcentajeVotosValidos.toFixed(2))   : null,
+    pctBelmont: belmont ? parseFloat(belmont.porcentajeVotosValidos.toFixed(2)) : null,
+    pctNieto:   nieto   ? parseFloat(nieto.porcentajeVotosValidos.toFixed(2))   : null,
+    votosRla:     rla.totalVotosValidos,
+    votosSanchez: sanchez.totalVotosValidos,
+    votosKeiko:   keiko   ? keiko.totalVotosValidos   : null,
+    votosBelmont: belmont ? belmont.totalVotosValidos : null,
+    votosNieto:   nieto   ? nieto.totalVotosValidos   : null,
+    delta,
+    favorDe: delta > 0 ? 'SANCHEZ' : 'RLA',
+    todosLosCandidatos: candidatos
+      .sort((a,b) => b.totalVotosValidos - a.totalVotosValidos)
+      .map(c => ({
+        nombre:  c.nombreCandidato,
+        partido: c.nombreAgrupacionPolitica,
+        votos:   c.totalVotosValidos,
+        pct:     c.porcentajeVotosValidos,
+      })),
   });
-  console.log((i + 1) + '/25 ' + d.n + ' OK');
-  if (i % 5 === 4) await new Promise(r => setTimeout(r, 200));
+
+  await new Promise(r => setTimeout(r, 200));
 }
-if (!regiones.length) { console.error('No se obtuvieron regiones'); return; }
-const dt = regiones.reduce((s, r) => s + r.delta, 0);
-const gf = gapActual - dt;
-regiones.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
-const R = {
+
+// Gap calculado desde suma de regiones (no hardcodeado)
+const rlaNacVotos  = regiones.reduce((s,r) => s + r.votosRla, 0);
+const sanNacVotos  = regiones.reduce((s,r) => s + r.votosSanchez, 0);
+const GAP_ACTUAL   = rlaNacVotos - sanNacVotos;
+
+const totalActasNac       = regiones.reduce((s,r) => s + r.totalActas, 0);
+const totalContabilizadas = regiones.reduce((s,r) => s + r.contabilizadas, 0);
+const pctProcesadoNac     = parseFloat((totalContabilizadas / totalActasNac * 100).toFixed(3));
+
+regiones.sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
+const deltaTotalSanchez = regiones.reduce((s,r) => s + r.delta, 0);
+const gapFinal = GAP_ACTUAL - deltaTotalSanchez;
+
+console.log(regiones.length + '/25 regiones OK');
+console.log('% procesado: ' + pctProcesadoNac + '%');
+console.log('Gap actual: ' + GAP_ACTUAL.toLocaleString('es-PE'));
+console.log('Delta Sanchez: ' + deltaTotalSanchez.toLocaleString('es-PE'));
+console.log('Gap final: ' + Math.round(gapFinal).toLocaleString('es-PE'));
+console.log(gapFinal > 0 ? 'RLA 2do lugar' : 'Sanchez 2do lugar');
+
+const exportData = {
   timestamp: Date.now(),
-  nacional: nacTot,
-  candidatosNacionales: cands.map(x => ({ nombre: x.nombreCandidato, partido: x.nombreAgrupacionPolitica, votos: x.totalVotosValidos, pct: x.porcentajeVotosValidos })),
-  gapActual: gapActual,
-  deltaTotalSanchez: Math.round(dt),
-  gapFinal: Math.round(gf),
-  resultado: gf > 0 ? 'RLA' : 'SANCHEZ',
-  regiones: regiones
+  pctProcesado: pctProcesadoNac,
+  totalActasNac,
+  totalContabilizadas,
+  gapActual: GAP_ACTUAL,
+  rlaNacVotos,
+  sanNacVotos,
+  deltaSanchez: Math.round(deltaTotalSanchez),
+  gapFinal: Math.round(gapFinal),
+  resultado: gapFinal > 0 ? 'RLA' : 'SANCHEZ',
+  regionesAnalizadas: regiones.length,
+  regiones,
 };
-console.log(regiones.length + ' regiones. Gap: ' + gapActual.toLocaleString() + ' -> Final: ' + gf.toLocaleString() + ' -> ' + R.resultado);
-const enc = btoa(unescape(encodeURIComponent(JSON.stringify(R))));
+
+// Abrir dashboard con datos
+const enc = btoa(unescape(encodeURIComponent(JSON.stringify(exportData))));
 window.open('${DASHBOARD_URL}/#data=' + enc, '_blank');
-} catch (e) { console.error('Error:', e); }
+
 })();`;
 
 export function loadFromLocalStorage() {
@@ -190,8 +238,8 @@ export default function DataUpdater({ onUpdate }) {
         <p><strong>Pasos:</strong></p>
         <p>1. Abre <code>resultadoelectoral.onpe.gob.pe</code></p>
         <p>2. F12 → Console</p>
-        <p>3. Pega el script → Enter</p>
-        <p>4. El dashboard se abre con datos frescos</p>
+        <p>3. Copia el script de abajo y pegalo en la consola → Enter</p>
+        <p>4. El dashboard se abre con datos frescos automaticamente</p>
       </div>
 
       <div className="updater-script-toggle">
@@ -210,7 +258,7 @@ export default function DataUpdater({ onUpdate }) {
       )}
 
       <div className="updater-steps" style={{ marginTop: 12 }}>
-        <p><strong>Alternativa:</strong> pega JSON directamente</p>
+        <p><strong>Alternativa:</strong> pega el JSON del script directamente</p>
       </div>
 
       <textarea
