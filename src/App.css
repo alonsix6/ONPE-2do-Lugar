@@ -171,6 +171,17 @@ body {
 .heatmap-empty { background: transparent; }
 .heatmap-abbr { font-weight: 600; font-size: 12px; line-height: 1.2; }
 .heatmap-delta { font-size: 10px; font-family: var(--font-mono); opacity: 0.9; }
+.heatmap-ext {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--border-radius-md);
+  margin-top: 4px;
+  color: #fff;
+  font-size: 11px;
+}
 .heatmap-legend {
   display: flex;
   gap: 16px;

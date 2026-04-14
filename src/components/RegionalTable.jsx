@@ -25,7 +25,9 @@ export default function RegionalTable({ regiones }) {
             const col = isSan ? '#A32D2D' : '#185FA5';
             return (
               <tr key={r.nombre || r.cod}>
-                <td style={{ fontWeight: 500, fontSize: 12 }}>{r.nombre}</td>
+                <td style={{ fontWeight: 500, fontSize: 12 }}>
+                  {r.cod === 'EXT' ? '🌍 ' : ''}{r.nombre}
+                </td>
                 <td className="r" style={{ color: 'var(--color-text-secondary)' }}>
                   {fmtPct(r.pctProcesado)}
                 </td>
