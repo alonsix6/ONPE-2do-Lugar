@@ -3,6 +3,7 @@ import { fmtDate } from '../utils/format';
 const SOURCE_LABELS = {
   live: { text: 'EN VIVO', class: '', desc: 'en vivo (directo)' },
   proxy: { text: 'EN VIVO', class: '', desc: 'en vivo (proxy)' },
+  manual: { text: 'MANUAL', class: ' manual', desc: 'actualización manual' },
   snapshot: { text: 'SNAPSHOT', class: ' cached', desc: 'snapshot' },
 };
 
