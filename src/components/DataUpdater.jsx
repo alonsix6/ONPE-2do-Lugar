@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const LS_KEY = 'onpe-2026-data';
+const DASHBOARD_URL = 'https://segundo-lugar-onpe26.netlify.app';
 
-// Script que el usuario corre en la consola del tab de ONPE
-const SCRAPER_SCRIPT = `// Correr en la consola de: resultadoelectoral.onpe.gob.pe
+// Script que el usuario corre en la consola de ONPE
+// Genera JSON, comprime con btoa, y abre el dashboard con los datos en el hash
+const SCRAPER_SCRIPT = `// Correr en consola de: resultadoelectoral.onpe.gob.pe
 (async()=>{
   const B='https://resultadoelectoral.onpe.gob.pe/presentacion-backend';
   const D=[
@@ -18,6 +20,7 @@ const SCRAPER_SCRIPT = `// Correr en la consola de: resultadoelectoral.onpe.gob.
     {n:'Ucayali',c:'250000'}
   ];
   const nm=s=>s.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toUpperCase();
+  console.log('Obteniendo datos nacionales...');
   const [nac,vnac]=await Promise.all([
     fetch(B+'/resumen-general/totales?idAmbitoGeografico=1&idEleccion=10&tipoFiltro=nacional').then(r=>r.json()),
     fetch(B+'/eleccion-presidencial/participantes-ubicacion-geografica-nombre?tipoFiltro=nacional&idAmbitoGeografico=1&idEleccion=10').then(r=>r.json())
@@ -25,6 +28,7 @@ const SCRAPER_SCRIPT = `// Correr en la consola de: resultadoelectoral.onpe.gob.
   const regs=[];
   for(let i=0;i<D.length;i+=5){
     const batch=D.slice(i,i+5);
+    console.log('Batch '+(i/5+1)+'/5: '+batch.map(d=>d.n).join(', '));
     const res=await Promise.all(batch.map(async d=>{
       const[t,v]=await Promise.all([
         fetch(B+'/resumen-general/totales?idAmbitoGeografico=1&idEleccion=10&tipoFiltro=ubigeo_nivel_01&idUbigeoDepartamento='+d.c).then(r=>r.json()),
@@ -57,9 +61,10 @@ const SCRAPER_SCRIPT = `// Correr en la consola de: resultadoelectoral.onpe.gob.
     candidatosNacionales:cns.map(x=>({nombre:x.nombreCandidato,partido:x.nombreAgrupacionPolitica,votos:x.totalVotosValidos,pct:x.porcentajeVotosValidos})),
     gapActual:gap,deltaTotalSanchez:Math.round(dt),gapFinal:gf!==null?Math.round(gf):null,
     resultado:gf>0?'RLA':'SANCHEZ',regiones:regs.sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta))};
-  await navigator.clipboard.writeText(JSON.stringify(result));
-  console.log('✅ Datos copiados al portapapeles (' + regs.length + ' regiones)');
-  console.log('Gap actual:', gap?.toLocaleString(), '→ Gap final:', gf?.toLocaleString(), '→', result.resultado);
+  const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(result))));
+  console.log('✅ '+regs.length+' regiones. Gap: '+gap?.toLocaleString()+' → Final: '+gf?.toLocaleString()+' → '+result.resultado);
+  console.log('Abriendo dashboard...');
+  window.open('${DASHBOARD_URL}/#data='+encoded,'_blank');
 })();`;
 
 export function loadFromLocalStorage() {
@@ -76,6 +81,25 @@ export function saveToLocalStorage(data) {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(data));
   } catch {}
+}
+
+export function loadFromHash() {
+  try {
+    const hash = window.location.hash;
+    if (!hash || !hash.includes('data=')) return null;
+    const encoded = hash.split('data=')[1];
+    if (!encoded) return null;
+    const json = decodeURIComponent(escape(atob(encoded)));
+    const parsed = JSON.parse(json);
+    if (parsed && parsed.regiones && parsed.regiones.length > 0) {
+      // Clean the hash so it doesn't reload on refresh
+      window.history.replaceState(null, '', window.location.pathname);
+      return parsed;
+    }
+  } catch (e) {
+    console.warn('Failed to parse hash data:', e.message);
+  }
+  return null;
 }
 
 export default function DataUpdater({ onUpdate }) {
@@ -104,7 +128,7 @@ export default function DataUpdater({ onUpdate }) {
   if (!open) {
     return (
       <button className="updater-btn" onClick={() => setOpen(true)}>
-        Actualizar datos (consola)
+        Actualizar datos (desde ONPE)
       </button>
     );
   }
@@ -112,19 +136,21 @@ export default function DataUpdater({ onUpdate }) {
   return (
     <div className="updater-panel">
       <div className="updater-header">
-        <span className="section-title" style={{ margin: 0 }}>Actualizar datos manualmente</span>
+        <span className="section-title" style={{ margin: 0 }}>Actualizar datos desde ONPE</span>
         <button className="updater-close" onClick={() => { setOpen(false); setStatus(null); }}>×</button>
       </div>
 
       <div className="updater-steps">
+        <p><strong>Método automático:</strong></p>
         <p>1. Abre <code>resultadoelectoral.onpe.gob.pe</code> en otra pestaña</p>
         <p>2. Abre la consola (F12 → Console)</p>
-        <p>3. Pega este script y presiona Enter:</p>
+        <p>3. Copia y pega este script → Enter</p>
+        <p>4. El script abre esta app con los datos automáticamente</p>
       </div>
 
       <div className="updater-script-toggle">
         <button className="refresh-btn" onClick={() => setShowScript(!showScript)}>
-          {showScript ? 'Ocultar script' : 'Mostrar script para copiar'}
+          {showScript ? 'Ocultar script' : 'Ver script para copiar'}
         </button>
       </div>
 
@@ -133,13 +159,12 @@ export default function DataUpdater({ onUpdate }) {
           className="updater-textarea script"
           readOnly
           value={SCRAPER_SCRIPT}
-          onClick={e => { e.target.select(); navigator.clipboard?.writeText(SCRAPER_SCRIPT); }}
+          onClick={e => { e.target.select(); navigator.clipboard?.writeText(SCRAPER_SCRIPT); setStatus('Script copiado al portapapeles'); }}
         />
       )}
 
-      <div className="updater-steps">
-        <p>4. El script copia los datos al portapapeles automáticamente</p>
-        <p>5. Pega aquí abajo (Ctrl+V):</p>
+      <div className="updater-steps" style={{ marginTop: 12 }}>
+        <p><strong>Método manual:</strong> pega JSON directamente</p>
       </div>
 
       <textarea
@@ -154,7 +179,7 @@ export default function DataUpdater({ onUpdate }) {
           Cargar datos
         </button>
         {status && (
-          <span className={status.startsWith('OK') ? 'updater-ok' : 'updater-err'}>
+          <span className={status.startsWith('OK') || status.startsWith('Script') ? 'updater-ok' : 'updater-err'}>
             {status}
           </span>
         )}

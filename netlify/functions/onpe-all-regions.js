@@ -154,16 +154,44 @@ export const handler = async () => {
   try {
     // Init session to get cookies from ONPE
     await initSession();
+    console.log('[ONPE] Session cookies:', sessionCookies || 'none');
 
-    // Nacional (2 requests in parallel)
-    const [nacional, votNac] = await Promise.all([
-      safeFetch(`${BASE}/resumen-general/totales?idAmbitoGeografico=1&idEleccion=10&tipoFiltro=nacional`),
-      safeFetch(`${BASE}/eleccion-presidencial/participantes-ubicacion-geografica-nombre?tipoFiltro=nacional&idAmbitoGeografico=1&idEleccion=10`),
-    ]);
+    // Test a single request first with detailed logging
+    const testUrl = `${BASE}/resumen-general/totales?idAmbitoGeografico=1&idEleccion=10&tipoFiltro=nacional`;
+    console.log('[ONPE] Testing URL:', testUrl);
+
+    const testRes = await fetch(testUrl, {
+      headers: { ...HEADERS, ...(sessionCookies ? { Cookie: sessionCookies } : {}) },
+    });
+    console.log('[ONPE] Status:', testRes.status);
+    console.log('[ONPE] Content-Type:', testRes.headers.get('content-type'));
+    const testText = await testRes.text();
+    console.log('[ONPE] Body preview (200 chars):', testText.slice(0, 200));
+    const isJson = testText.trim().startsWith('{');
+    console.log('[ONPE] Is JSON:', isJson);
+
+    if (!isJson) {
+      return {
+        statusCode: 502,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({
+          error: 'ONPE API returned HTML instead of JSON (WAF block)',
+          status: testRes.status,
+          contentType: testRes.headers.get('content-type'),
+          bodyPreview: testText.slice(0, 300),
+        }),
+      };
+    }
+
+    // If we got JSON, proceed with full fetch
+    const nacional = JSON.parse(testText);
+
+    const votNac = await safeFetch(`${BASE}/eleccion-presidencial/participantes-ubicacion-geografica-nombre?tipoFiltro=nacional&idAmbitoGeografico=1&idEleccion=10`);
 
     // Regiones en batches de 5
     const resultados = await fetchAllRegionsInBatches(DEPARTAMENTOS, 5);
     const regiones = resultados.filter(Boolean);
+    console.log('[ONPE] Regions fetched:', regiones.length, '/', DEPARTAMENTOS.length);
 
     const deltaTotalSanchez = regiones.reduce((s, r) => s + r.delta, 0);
 
