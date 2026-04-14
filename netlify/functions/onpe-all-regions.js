@@ -29,16 +29,46 @@ const DEPARTAMENTOS = [
 ];
 
 const HEADERS = {
-  'Accept': 'application/json',
-  'Referer': 'https://resultadoelectoral.onpe.gob.pe/',
+  'Referer': 'https://resultadoelectoral.onpe.gob.pe/main/resumen',
+  'Origin': 'https://resultadoelectoral.onpe.gob.pe',
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+  'Accept': 'application/json, text/plain, */*',
+  'Accept-Language': 'es-PE,es;q=0.9',
+  'X-Requested-With': 'XMLHttpRequest',
+  'Connection': 'keep-alive',
 };
+
+// Obtain session cookies by visiting the main page first
+let sessionCookies = null;
+
+async function initSession() {
+  if (sessionCookies) return;
+  try {
+    const res = await fetch('https://resultadoelectoral.onpe.gob.pe/', {
+      headers: {
+        'User-Agent': HEADERS['User-Agent'],
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'es-PE,es;q=0.9',
+      },
+      redirect: 'follow',
+    });
+    const setCookie = res.headers.get('set-cookie');
+    if (setCookie) {
+      sessionCookies = setCookie.split(',').map(c => c.split(';')[0].trim()).join('; ');
+    }
+  } catch (e) {
+    console.warn('Could not init session:', e.message);
+  }
+}
 
 async function safeFetch(url) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
   try {
-    const res = await fetch(url, { headers: HEADERS, signal: controller.signal });
+    const hdrs = { ...HEADERS };
+    if (sessionCookies) hdrs['Cookie'] = sessionCookies;
+
+    const res = await fetch(url, { headers: hdrs, signal: controller.signal });
     if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
     const text = await res.text();
     try {
@@ -122,6 +152,9 @@ async function fetchAllRegionsInBatches(deps, batchSize = 5) {
 
 export const handler = async () => {
   try {
+    // Init session to get cookies from ONPE
+    await initSession();
+
     // Nacional (2 requests in parallel)
     const [nacional, votNac] = await Promise.all([
       safeFetch(`${BASE}/resumen-general/totales?idAmbitoGeografico=1&idEleccion=10&tipoFiltro=nacional`),
