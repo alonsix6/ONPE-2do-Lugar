@@ -190,6 +190,29 @@ body {
 .heatmap-dot.san { background: #A32D2D; }
 .heatmap-legend-note { margin-left: auto; font-style: italic; }
 
+/* Collapsible sections */
+.collapsible-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 0 10px;
+  color: inherit;
+}
+.collapsible-header:hover .section-title { color: var(--color-text-primary); }
+.collapsible-summary {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
+}
+.collapsible-arrow { margin-left: 8px; font-size: 10px; }
+
 /* Breakeven Calculator */
 .breakeven-gauge {
   position: relative;
