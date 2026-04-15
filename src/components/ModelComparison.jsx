@@ -2,7 +2,7 @@ import { fmtThousands } from '../utils/format';
 
 export default function ModelComparison({ bottomUpResult }) {
   const gapLabel = bottomUpResult
-    ? `${bottomUpResult.resultado === 'RLA' ? 'RLA' : 'Sánchez'} +${fmtThousands(bottomUpResult.margen)}`
+    ? `${bottomUpResult.resultado === 'RLA' ? 'RLA' : 'Sánchez'} 2do (+${fmtThousands(bottomUpResult.margen)})`
     : '—';
   const gapColor = bottomUpResult?.resultado === 'RLA' ? '#185FA5' : '#A32D2D';
 
