@@ -47,6 +47,7 @@ function normalizeRegion(r) {
     },
     keiko: r.pctKeiko != null ? { votos: r.votosKeiko ?? 0, pct: r.pctKeiko } : r.keiko,
     belmont: r.pctBelmont != null ? { votos: r.votosBelmont ?? 0, pct: r.pctBelmont } : r.belmont,
+    nieto: r.pctNieto != null ? { votos: r.votosNieto ?? 0, pct: r.pctNieto } : r.nieto,
     delta: r.delta ?? 0,
     favorDe: r.favorDe ?? (r.delta > 0 ? 'SANCHEZ' : 'RLA'),
     todosLosCandidatos: r.todosLosCandidatos || [],
