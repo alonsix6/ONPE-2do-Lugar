@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useONPEData } from './hooks/useONPEData';
 import { useProjection } from './hooks/useProjection';
-import { fmtThousands, fmtPct } from './utils/format';
+import { fmtThousands, fmtPct, fmtNum } from './utils/format';
 import { exportToExcel } from './utils/exportExcel';
 
 import Header from './components/Header';
@@ -74,19 +74,19 @@ export default function App() {
         />
         <GapCard
           label="Gap actual"
-          value={gapActual != null ? fmtThousands(gapActual) : '—'}
-          subtitle="RLA sobre Sanchez"
-          colorClass="rla"
+          value={gapActual != null ? fmtNum(gapActual) : '—'}
+          subtitle={gapActual >= 0 ? 'RLA sobre Sanchez' : 'Sanchez sobre RLA'}
+          colorClass={gapActual >= 0 ? 'rla' : 'san'}
         />
         <GapCard
           label="Δ Sanchez pend."
-          value={deltaSanchez != null ? `+${fmtThousands(deltaSanchez)}` : '—'}
+          value={deltaSanchez != null ? fmtNum(deltaSanchez) : '—'}
           subtitle="votos netos proyect."
-          colorClass="san"
+          colorClass={deltaSanchez >= 0 ? 'san' : 'rla'}
         />
         <GapCard
           label="Gap proyectado"
-          value={gapFinal != null ? `+${fmtThousands(Math.abs(gapFinal))}` : '—'}
+          value={gapFinal != null ? fmtNum(gapFinal) : '—'}
           subtitle={isRla ? 'RLA 2do lugar' : 'Sanchez 2do lugar'}
           colorClass={isRla ? 'rla' : 'san'}
         />

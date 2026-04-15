@@ -17,7 +17,7 @@ export default function ProjectionResult({ gapFinal, resultado }) {
         Proyección central
       </span>
       <span className="proj-result-val" style={{ color: textColor }}>
-        {isRla ? 'RLA' : 'Sánchez'} +{fmtThousands(Math.abs(gapFinal))}
+        {isRla ? 'RLA' : 'Sánchez'} 2do lugar (+{fmtThousands(Math.abs(gapFinal))})
       </span>
     </div>
   );

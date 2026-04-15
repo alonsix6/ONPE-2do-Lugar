@@ -39,40 +39,76 @@ export function calcSensitivity(regiones, gapActual, steps = 50) {
   return results;
 }
 
-// Calculate at what % of actas Sánchez would catch RLA (if current trends hold)
+// Breakeven analysis: handles both RLA-ahead and Sánchez-ahead scenarios
 export function calcBreakevenByProgress(regiones, gapActual, nacional) {
   if (!nacional || !regiones?.length) return null;
 
   const currentPct = nacional.actasContabilizadas || 0;
   const deltaTotalSanchez = regiones.reduce((s, r) => s + r.delta, 0);
   const totalVotosPend = regiones.reduce((s, r) => s + r.votosPend, 0);
-
-  // If delta is <= 0, Sánchez is not closing the gap at all
-  if (deltaTotalSanchez <= 0) {
-    return { crossoverPct: null, neverCatches: true, sanchezWins: false, margin: gapActual, totalVotosPend, deltaTotalSanchez };
-  }
-
   const gapFinal = gapActual - deltaTotalSanchez;
 
-  // If Sánchez already projected to win
-  if (gapFinal <= 0) {
-    return { crossoverPct: currentPct, neverCatches: false, sanchezWins: true, margin: Math.abs(gapFinal), totalVotosPend, deltaTotalSanchez };
+  // Who leads currently and who is projected to win
+  const sanchezLeadsNow = gapActual < 0;
+  const sanchezWinsProjected = gapFinal <= 0;
+
+  // Sánchez already ahead in counted votes AND projected to stay ahead
+  if (sanchezLeadsNow && sanchezWinsProjected) {
+    return {
+      crossoverPct: null, neverCatches: false, sanchezWins: true,
+      sanchezLeadsNow: true,
+      margin: Math.abs(gapFinal), totalVotosPend, deltaTotalSanchez,
+      sanchezNeedsPct: 0,
+      sanchezCurrentPct: totalVotosPend > 0 ? parseFloat((Math.abs(deltaTotalSanchez) / totalVotosPend * 100).toFixed(1)) : 0,
+    };
   }
 
-  // Crossover: fraction of remaining votes needed to erase gap
+  // Sánchez ahead in counted BUT projected to lose (Extranjero reversal)
+  if (sanchezLeadsNow && !sanchezWinsProjected) {
+    // RLA needs pending votes to overtake — show how much RLA gains from pending
+    const rlaMarginInPending = Math.abs(deltaTotalSanchez);
+    return {
+      crossoverPct: null, neverCatches: false, sanchezWins: false,
+      sanchezLeadsNow: true, rlaComeback: true,
+      margin: Math.abs(gapFinal), totalVotosPend, deltaTotalSanchez,
+      sanchezNeedsPct: totalVotosPend > 0 ? parseFloat((Math.abs(gapFinal) / totalVotosPend * 100).toFixed(1)) : 0,
+      sanchezCurrentPct: totalVotosPend > 0 ? parseFloat((rlaMarginInPending / totalVotosPend * 100).toFixed(1)) : 0,
+    };
+  }
+
+  // RLA ahead — Sánchez not closing gap
+  if (deltaTotalSanchez <= 0) {
+    return {
+      crossoverPct: null, neverCatches: true, sanchezWins: false,
+      sanchezLeadsNow: false,
+      margin: gapActual, totalVotosPend, deltaTotalSanchez,
+    };
+  }
+
+  // RLA ahead but Sánchez projected to overtake
+  if (sanchezWinsProjected) {
+    const fractionNeeded = gapActual / deltaTotalSanchez;
+    const crossoverPct = currentPct + fractionNeeded * (100 - currentPct);
+    return {
+      crossoverPct: Math.round(crossoverPct * 10) / 10,
+      neverCatches: false, sanchezWins: true,
+      sanchezLeadsNow: false,
+      margin: Math.abs(gapFinal), totalVotosPend, deltaTotalSanchez,
+      sanchezNeedsPct: totalVotosPend > 0 ? parseFloat((gapActual / totalVotosPend * 100).toFixed(1)) : 0,
+      sanchezCurrentPct: totalVotosPend > 0 ? parseFloat((deltaTotalSanchez / totalVotosPend * 100).toFixed(1)) : 0,
+    };
+  }
+
+  // RLA ahead and projected to stay ahead
   const fractionNeeded = gapActual / deltaTotalSanchez;
   const crossoverPct = currentPct + fractionNeeded * (100 - currentPct);
 
   return {
     crossoverPct: crossoverPct > 100 ? null : Math.round(crossoverPct * 10) / 10,
-    neverCatches: crossoverPct > 100,
-    sanchezWins: false,
-    margin: gapFinal,
-    totalVotosPend,
-    deltaTotalSanchez,
-    // What margin % Sánchez needs in remaining votes
+    neverCatches: crossoverPct > 100, sanchezWins: false,
+    sanchezLeadsNow: false,
+    margin: gapFinal, totalVotosPend, deltaTotalSanchez,
     sanchezNeedsPct: totalVotosPend > 0 ? parseFloat((gapActual / totalVotosPend * 100).toFixed(1)) : 0,
-    // What margin % Sánchez currently has in remaining votes
     sanchezCurrentPct: totalVotosPend > 0 ? parseFloat((deltaTotalSanchez / totalVotosPend * 100).toFixed(1)) : 0,
   };
 }
