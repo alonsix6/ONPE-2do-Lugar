@@ -61,26 +61,7 @@ export function useONPEData() {
       console.warn('Client-side ONPE fetch failed:', e.message);
     }
 
-    // Strategy 2: Try Netlify Function proxy
-    try {
-      const res = await window.fetch('/api/onpe-all-regions');
-      if (res.ok) {
-        const ct = res.headers.get('content-type') || '';
-        if (ct.includes('application/json')) {
-          const json = await res.json();
-          if (!json.error && json.regiones) {
-            loadData(json, 'proxy');
-            setNextRefresh(new Date(Date.now() + REFRESH_INTERVAL));
-            setLoading(false);
-            return;
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('Netlify proxy failed:', e.message);
-    }
-
-    // Strategy 3: static snapshot
+    // Strategy 2: static snapshot
     if (!hasData.current) {
       loadData(STATIC_SNAPSHOT, 'snapshot');
     }
